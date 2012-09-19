@@ -69,20 +69,18 @@ def shutdown_server():
 
 @app.route('/', methods=['GET', 'DELETE'])
 def index():
-    print flask.g
     if flask.request.method == 'DELETE':
         shutdown_server()
         return 'Server shutdown'
     else:
         try:
             filename = flask.current_app.config['FILENAME']
-            print filename
             source = open(filename, 'r')
             content = md.render(source.read().decode('utf-8'))
             name = os.path.basename(filename)
             name = name[:20] + '...' if len(name) > 20 else name
         except IOError, ex:
-            print ex.strerror
+            app.logger.error(ex.strerror)
         return flask.render_template('marked.html', name=name, content=content)
 
 @app.route('/update')
