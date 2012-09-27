@@ -6,7 +6,7 @@ from cgi import escape as escape_html
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 __author__ = 'metaphysiks'
 
 __all__ = [ 'main' ]

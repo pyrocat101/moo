@@ -1,8 +1,9 @@
 from setuptools import setup
+from glob import glob
 
 setup(
 	name='moo',
-	version='0.1.0',
+	version='0.1.1',
 	description="yet another markdown preview server.",
 	long_description="""Moo is a mini markdown render server that provides \
 preview of markdown files. It can automatically reload the preview in your \
@@ -16,7 +17,8 @@ can be easily written to interface with it.
 	py_modules=['moo'],
 	install_requires=['Flask', 'pygments', 'misaka'],
 	zip_safe=False,
-	include_package_data=True,
+	data_files=[('static', glob('static/*')),
+                ('templates', glob('templates/*'))],
 	entry_points={
         'console_scripts': ['moo = moo:main'],
     }
