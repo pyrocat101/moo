@@ -18,7 +18,7 @@ from cgi import escape as escape_html
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 
-__version__ = '0.1.2'
+__version__ = '0.1.5'
 
 app = flask.Flask(__name__)
 
@@ -76,27 +76,41 @@ def shutdown_server():
         raise RuntimeError('Not running with the Werkzeug Server')
     func()
 
+def render_markdown():
+    try:
+        filename = flask.current_app.config['FILENAME']
+        source = open(filename, 'r')
+        content = md.render(source.read().decode('utf-8'))
+        name = os.path.basename(filename)
+        # name = name[:20] + '...' if len(name) > 20 else name
+        return name, content
+    except IOError, ex:
+        app.logger.error(ex.strerror)
+
 @app.route('/', methods=['GET', 'DELETE'])
 def index():
     if flask.request.method == 'DELETE':
         shutdown_server()
         return 'Server shutdown'
     else:
-        try:
-            filename = flask.current_app.config['FILENAME']
-            source = open(filename, 'r')
-            content = md.render(source.read().decode('utf-8'))
-            name = os.path.basename(filename)
-            name = name[:20] + '...' if len(name) > 20 else name
-        except IOError, ex:
-            app.logger.error(ex.strerror)
-        return flask.render_template('marked.html', name=name, content=content)
+        name, content = render_markdown()
+        return flask.render_template('preview.html', name=name, content=content)
 
 @app.route('/update')
 def update():
     filename = flask.current_app.config['FILENAME']
     return flask.Response(reloader(filename, 1),
                           mimetype='text/event-stream')
+
+@app.route('/html')
+def render_html():
+    name, content = render_markdown()
+    noext = os.path.splitext(name)[0]
+    response = flask.make_response(flask.render_template('output.html', name=name, content=content))
+    response.headers['Content-Type'] = 'application/octet-stream'
+    response.headers['Content-Disposition'] = 'attachment;filename=\"%s.html\"' % noext
+    return response
+    # return flask.render_template('output.html', name=name, content=content)
 
 USAGE = """
 Render markdown file and auto reload for changes.

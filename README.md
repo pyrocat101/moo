@@ -18,11 +18,12 @@ pip install moo
 
 ## RESTful API
 
-| Action                  | HTTP Method | Request URL                      | Requst Body            |
-|-------------------------|-------------|----------------------------------|------------------------|
-| Get preview             | GET         | http://localhost:\<port\>        | \<Preview content\>    |
-| Get update notification | GET         | http://localhost:\<port\>/update | update                 |
-| Close server            | DELETE      | http://localhost:\<port\>        |                        |
+| Action                  | HTTP Method | Request URL                      | Response Body           |
+|-------------------------|-------------|----------------------------------|-------------------------|
+| Get preview             | GET         | http://localhost:\<port\>        | \<Preview content\>     |
+| Download HTML           | GET         | http://localhost:\<port\>/html   | \<Rendered HTML\>       |
+| Get update notification | GET         | http://localhost:\<port\>/update | update                  |
+| Close server            | DELETE      | http://localhost:\<port\>        |                         |
 
 By default, `port` is 5000
 

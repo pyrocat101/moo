@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Preview {{ name|truncate(20) }}{% endblock %}
+{% block head %}
+  {{ super() }}
+  <link rel="stylesheet" type="text/css" href="/static/md.css" />
+{% endblock %}
+{% block footer_script %}
+<script type="text/javascript">
+(function () {
+  var source = new EventSource('/update');
+  source.onmessage = function (event) {
+    window.location.reload();
+  };
+})();
+</script>
+{% endblock %}

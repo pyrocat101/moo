@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  {% block head %}
+  <title>{% block title %}{% endblock %}</title>
+  {% endblock %}
+</head>
+<body>
+  <div id="readme">
+    <span class="name">
+      <span class="mini-icon mini-icon-readme"></span>
+      {{ name|truncate(20) }}
+    </span>
+    <article class="markdown-body">
+      {% autoescape false %}
+        {{ content }}
+      {% endautoescape %}
+    </article>
+  </div>
+  {% block footer_script %}
+  {% endblock %}
+</body>
+</html>

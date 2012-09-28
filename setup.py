@@ -1,10 +1,11 @@
 from setuptools import setup
+from moo import __doc__ as long_descript
 
 setup(
 	name='moo',
-	version='0.1.2',
+	version='0.1.5',
 	description="Yet another markdown preview server.",
-	long_description=__doc__,
+	long_description=long_descript,
     author="metaphysiks",
     author_email="i@dingstyle.me",
     keywords=("markdown", "pygments", "preview", "flask"),
