@@ -1,2 +1,2 @@
-recursive-include templates *
-recursive-include static *
+recursive-include moo/templates *
+recursive-include moo/static *
