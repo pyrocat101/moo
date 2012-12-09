@@ -1,9 +1,9 @@
 from setuptools import setup
-from moo import __doc__ as long_descript
+from moo import __doc__ as long_descript, __version__ as version
 
 setup(
 	name='moo',
-	version='0.1.5',
+	version=version,
 	description="Yet another markdown preview server.",
 	long_description=long_descript,
     author="metaphysiks",
@@ -17,5 +17,13 @@ setup(
 	entry_points={
         'console_scripts': ['moo = moo:run_server'],
     },
-    classifiers=["Topic :: Utilities"],
+    license='MIT',
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'License :: OSI Approved :: MIT License',
+        'Intended Audience :: Developers',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Topic :: Utilities'
+    ]
 )

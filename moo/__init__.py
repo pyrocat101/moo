@@ -5,20 +5,20 @@
 	moo
 	~~~
 
-	Moo is a mini markdown render server that provides preview of markdown 
-	files. It can automatically reload the preview in your broswer when the 
+	Moo is a mini markdown render server that provides preview of markdown
+	files. It can automatically reload the preview in your broswer when the
 	monitored file changes, which makes it suitable to live preview markdown
 	in editors that does not provide this feature. Plugins can be
 	easily written to interface with it.
 
 """
 
-import flask, misaka, sys, pygments, os, time, getopt
+import flask, misaka, sys, pygments, os, time, getopt, locale
 from cgi import escape as escape_html
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 
 app = flask.Flask(__name__)
 
@@ -81,7 +81,7 @@ def render_markdown():
         filename = flask.current_app.config['FILENAME']
         source = open(filename, 'r')
         content = md.render(source.read().decode('utf-8'))
-        name = os.path.basename(filename)
+        name = unicode(os.path.basename(filename))
         # name = name[:20] + '...' if len(name) > 20 else name
         return name, content
     except IOError, ex:
@@ -117,6 +117,8 @@ Render markdown file and auto reload for changes.
 Usage: %s [-p PORT] INPUT_FILE
 """
 
+SYS_ENCODING = locale.getpreferredencoding()
+
 def run_server():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "p:h", ["help", "port="])
@@ -134,7 +136,7 @@ def run_server():
         else:
             assert False, "unhandled option: %s" % o
     assert len(args) > 0 and args[0] is not None, "No input file specified."
-    app.config['FILENAME'] = args[0]
+    app.config['FILENAME'] = args[0].decode(SYS_ENCODING)
     app.debug = True
     app.run(threaded=True, port=port)
 
