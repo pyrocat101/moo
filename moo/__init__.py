@@ -13,12 +13,18 @@
 
 """
 
-import flask, misaka, sys, pygments, os, time, getopt, locale
+import flask, misaka, sys, pygments, os, time, getopt, locale, urllib
 from cgi import escape as escape_html
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 
-__version__ = '0.1.6'
+__version__ = '0.1.7'
+
+SYS_ENCODING = locale.getpreferredencoding()
 
 app = flask.Flask(__name__)
 
@@ -105,19 +111,16 @@ def update():
 @app.route('/html')
 def render_html():
     name, content = render_markdown()
-    noext = os.path.splitext(name)[0]
+    noext = urllib.quote(os.path.splitext(name)[0].encode('utf-8'))
     response = flask.make_response(flask.render_template('output.html', name=name, content=content))
     response.headers['Content-Type'] = 'application/octet-stream'
-    response.headers['Content-Disposition'] = 'attachment;filename=\"%s.html\"' % noext
+    response.headers['Content-Disposition'] = u'attachment;filename=\"%s.html\"' % noext
     return response
-    # return flask.render_template('output.html', name=name, content=content)
 
 USAGE = """
 Render markdown file and auto reload for changes.
 Usage: %s [-p PORT] INPUT_FILE
 """
-
-SYS_ENCODING = locale.getpreferredencoding()
 
 def run_server():
     try:
