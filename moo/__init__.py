@@ -17,10 +17,6 @@ import flask, misaka, sys, pygments, os, time, getopt, locale, urllib
 from cgi import escape as escape_html
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
 
 __version__ = '0.1.7'
 
@@ -123,16 +119,16 @@ Usage: %s [-p PORT] INPUT_FILE
 """
 
 def run_server():
+    self = os.path.basename(sys.argv[0])
     try:
         opts, args = getopt.getopt(sys.argv[1:], "p:h", ["help", "port="])
     except getopt.GetoptError, err:
-        print str(err)
-        print USAGE
+        print USAGE % self
         sys.exit(2)
     port = 5000
     for o, a in opts:
         if o in ("-h", "--help"):
-            print USAGE
+            print USAGE % self
             sys.exit()
         elif o in ("-p", "--port"):
             port = int(a)
