@@ -1,18 +1,20 @@
+"""
+moo
+~~~
+
+Moo is a mini markdown render server that provides preview of markdown
+files. It can automatically reload the preview in your broswer when the
+monitored file changes, which makes it suitable to live preview markdown
+in editors that does not provide this feature. Plugins can be
+easily written to interface with it.
+
+"""
+
 from setuptools import setup
 
-"""
-	moo
-	~~~
+version = '0.1.8'
 
-	Moo is a mini markdown render server that provides preview of markdown
-	files. It can automatically reload the preview in your broswer when the
-	monitored file changes, which makes it suitable to live preview markdown
-	in editors that does not provide this feature. Plugins can be
-	easily written to interface with it.
-
-"""
-
-version = '0.1.7'
+print __doc__
 
 setup(
 	name='moo',
@@ -40,3 +42,4 @@ setup(
         'Topic :: Utilities'
     ]
 )
+
