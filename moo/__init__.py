@@ -1,24 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-	moo
-	~~~
-
-	Moo is a mini markdown render server that provides preview of markdown
-	files. It can automatically reload the preview in your broswer when the
-	monitored file changes, which makes it suitable to live preview markdown
-	in editors that does not provide this feature. Plugins can be
-	easily written to interface with it.
-
-"""
-
 import flask, misaka, sys, pygments, os, time, getopt, locale, urllib
 from cgi import escape as escape_html
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 
-__version__ = '0.1.7'
 
 SYS_ENCODING = locale.getpreferredencoding()
 
@@ -122,7 +109,7 @@ def run_server():
     self = os.path.basename(sys.argv[0])
     try:
         opts, args = getopt.getopt(sys.argv[1:], "p:h", ["help", "port="])
-    except getopt.GetoptError, err:
+    except getopt.GetoptError:
         print USAGE % self
         sys.exit(2)
     port = 5000
