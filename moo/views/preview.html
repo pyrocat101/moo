@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <!-- TODO: embed CSS here -->
+    <link rel="stylesheet" href="/static/style.css" type="text/css" />
+    <title>{{ title }} - moo</title>
+  </head>
+  <body>
+    {{ content }}
+    <script type="text/javscript">
+    (function () {
+      var source = new EventSource('/update');
+      source.onmessage = function (event) {
+        window.location.reload();
+      };
+    })();
+    </script>
+  </body>
+</html>
