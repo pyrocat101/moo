@@ -29,6 +29,16 @@ from bottle import Bottle
 from server import StoppableCherryPyServer
 
 __all__ = ['build_app', 'quickstart', 'export_html']
+__file__ = os.path.normpath(os.path.abspath(__file__))
+__path__ = os.path.dirname(__file__)
+
+# Fix default template path
+DEFAULT_TEMPLATE_DIR = os.path.normpath(os.path.join(__path__, 'templates'))
+bottle.TEMPLATE_PATH = [DEFAULT_TEMPLATE_DIR, './']
+
+# Fix default static file path
+DEFAULT_STATIC_FILES_DIR = os.path.normpath(os.path.join(__path__, 'static'))
+
 
 def build_app(filename, port, debug, quiet):
     app = Bottle()
@@ -82,7 +92,7 @@ def build_app(filename, port, debug, quiet):
 
     @app.route('/static/<filename>')
     def handle_static(filename):
-        return bottle.static_file(filename, root='static')
+        return bottle.static_file(filename, root=DEFAULT_STATIC_FILES_DIR)
 
     def run_app():
         try:
@@ -144,8 +154,6 @@ class Markup(object):
     html = property(**html())
 
 Markup.add_markup('markdown', r'\.(markdown|md|mdown|mkd|mkdn)$', markdown.to_html)
-
-
 
 
 def quickstart(markdown_file, port, debug=False, quiet=True):

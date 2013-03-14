@@ -52,9 +52,6 @@ def main():
     if output_file is not None:
         output_file = os.path.abspath(output_file)
 
-    # fix template search path
-    os.chdir(os.path.dirname(__file__) or '.')
-
     # export HTML mode
     if output_file is not None:
         moo.export_html(markdown_file, output_file)

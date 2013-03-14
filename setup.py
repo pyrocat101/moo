@@ -27,7 +27,7 @@ setup(
 	include_package_data=True,
 	zip_safe=False,
     platforms = 'any',
-	install_requires=['Flask', 'pygments', 'misaka'],
+	install_requires=['misaka', 'bottle', 'pygments', 'docopt', 'cherrypy'],
     license='MIT',
 	entry_points={
         'console_scripts': ['moo = moo.cmdline:main'],
@@ -39,7 +39,7 @@ setup(
         'Intended Audience :: End Users/Desktop',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2'
+        'Programming Language :: Python :: 2',
         'Topic :: Utilities'
     ]
 )
