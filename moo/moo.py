@@ -1,79 +1,82 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
-   _____________________
-  /   _ __   ___  ___   \\
-  |  | '  \ / _ \/ _ \  |
-  \  |_|_|_|\___/\___/  /
-   ---------------------
-          \   ^__^
-           \  (oo)\_______
-              (__)\       )\/\\
-                  ||----w |
-                  ||     ||
-  Editor-agnostic markdown live preview server.
+Copyright (c) 2013 metaphysiks
 
-Usage: moo [options] FILE
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
 
-Options:
-  --debug               Enable server debug log.
-  -q, --quiet           Quiet mode.
-  -p PORT, --port=PORT  Server port. Random port by default.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 """
 
 import bottle
 import logging
 import markdown
-import misaka
 import os
 import re
-import sys
 from bottle import Bottle
+from server import StoppableCherryPyServer
 
-def build_server(filename):
+__all__ = ['build_app', 'quickstart', 'export_html']
+
+def build_app(filename, port, debug, quiet):
     app = Bottle()
+    server = StoppableCherryPyServer(port=port, debug=debug, quiet=quiet)
     markup = Markup(filename)
+    dirname, basename = os.path.split(markup.filename)
+    title = '%s - %s' % (basename, dirname)
 
     @app.get('/')
-    @bottle.view('preview')
+    @bottle.view('github')
     def handle_index():
-        title = '%s - %s' % (markup.basename, markup.dirname)
         html_part = markup.html
-        return { 'html_part': html_part, 'title': title }
+        return {
+            'html_part': html_part,
+            'title': title,
+            'timestamp': markup.timestamp
+        }
 
     @app.delete('/')
     def handle_shutdown():
-        logging.info('stopping server...')
-        sys.exit(0)
+        server.shutdown()
 
     @app.post('/update')
-    def update():
+    def handle_update():
         try:
             obj = bottle.request.json
-            timestamp = str(obj['timestamp'])
-        except:
+            timestamp = long(obj['timestamp'])
+        except Exception, e:
+            logging.debug(e.message)
             bottle.response.status = '400 Malformed JSON'
             return
         try:
             file_timestamp = markup.timestamp
         except OSError, e:
-            logging.critical('%s: %s', MARKDOWN_FILE, e.strerror)
+            logging.critical('%s: %s', markup.filename, e.strerror)
             raise e
 
         if file_timestamp == timestamp: # Keep old entry
             return {
+                'title': title,
                 'timestamp': file_timestamp,
-                'filename': markup.basename,
-                'dirname': markup.dirname,
                 'html_part': None
             }
         else:
+            logging.info('detected file change')
             return {
+                'title': title,
                 'timestamp': file_timestamp,
-                'filename': markup.basename,
-                'dirname': markup.dirname,
                 'html_part': markup.html
             }
 
@@ -81,7 +84,13 @@ def build_server(filename):
     def handle_static(filename):
         return bottle.static_file(filename, root='static')
 
-    return app
+    def run_app():
+        try:
+            server.run(app)
+        except KeyboardInterrupt:
+            server.shutdown()
+
+    return run_app
 
 class Markup(object):
     _markup_detect = {}
@@ -94,7 +103,7 @@ class Markup(object):
         cls._markup_render[markup] = render_func
 
     def __init__(self, filename):
-        filename = os.path.expanduser(filename)
+        filename = os.path.abspath(os.path.expanduser(filename))
         if os.path.exists(filename) and os.path.isfile(filename):
             self._filename = filename
             self._basename = os.path.basename(filename)
@@ -105,7 +114,7 @@ class Markup(object):
 
     def _ftdetect(self, filename):
         # Markup._markup_detect
-        for ft, detect in Markup._markup_render:
+        for ft, detect in Markup._markup_detect.iteritems():
             if re.search(detect, filename) is not None:
                 return ft
         raise ValueError('unsupported markup')
@@ -117,45 +126,48 @@ class Markup(object):
         return locals()
     filename = property(**filename())
 
-    def basename():
-        doc = "The basename property."
-        def fget(self):
-            return self._basename
-        return locals()
-    basename = property(**basename())
-
-    def dirname():
-        doc = "The dirname property."
-        def fget(self):
-            return self._dirname
-        return locals()
-    dirname = property(**dirname())
-
     def timestamp():
         doc = "Source file timestamp."
         def fget(self):
-            return os.stat(self.filename).st_mtime
+            ts = long(os.stat(self.filename).st_mtime)
+            logging.debug('markup file timestamp %s', str(ts))
+            return ts
         return locals()
     timestamp = property(**timestamp())
 
     def html():
         doc = "Rendered html."
         def fget(self):
-            # TODO render html
-            # return self._html
             render_func = Markup._markup_render[self._filetype]
             return render_func(self._filename)
         return locals()
     html = property(**html())
 
-Markup.add_markup('markdown', r'\.(markdown|md|mdown|mkd|mkdn)$',
-                  markdown.to_html)
+Markup.add_markup('markdown', r'\.(markdown|md|mdown|mkd|mkdn)$', markdown.to_html)
 
-# TODO use cherrypy
-# TODO rewrite this func
-# def run_server(markdown_file, port, debug=False):
-#     global MARKDOWN_FILE
 
-#     MARKDOWN_FILE = markdown_file
-#     app.run(port=port, debug=debug, reloader=False, quiet=False)
 
+
+def quickstart(markdown_file, port, debug=False, quiet=True):
+    app = build_app(filename=markdown_file, port=port, debug=debug, quiet=quiet)
+    logging.debug('starting server at port %d', port)
+    app()
+
+def export_html(markdown_file, export_file):
+    markup = Markup(markdown_file)
+    dirname, basename = os.path.split(markup.filename)
+    title = '%s - %s' % (basename, dirname)
+    html_part = markup.html
+
+    export_data = {
+        'html_part': html_part,
+        'title': title,
+        'timestamp': markup.timestamp
+    }
+    logging.debug('rendering exported html...')
+    exported_html = bottle.template('github-export', export_data)
+    try:
+        with open(export_file, 'w') as export_file:
+            export_file.write(exported_html.encode('utf-8'))
+    except IOError, e:
+        logging.error(e.strerror)
