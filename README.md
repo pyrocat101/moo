@@ -1,14 +1,12 @@
 # Moo
 
-Moo is a mini markdown preview server that provides preview of markdown
-files. It automatically reload the preview in your broswer when file
-changes, which makes it suitable to live preview markdown in editors
-that does not provide this feature. Plugins can be easily written to
-interface with it.
+Moo is an editor-agnostic markdown live previewer. Once you save your
+file, the rendered HTML will automatically get reloaded in your favourite
+browser.
 
 ![Screenshot](http://i.minus.com/ibnNN6nGKyGKD3.png)
 
-Moo uses github's own [sundown][sundown] library to provide github
+It uses github's own [sundown][sundown] library to provide github
 flavored markdown preview. The stylesheet of the preview is extracted
 from the github website.
 
