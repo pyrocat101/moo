@@ -21,7 +21,7 @@ setup(
 	long_description=__doc__,
     author="metaphysiks",
     author_email="i@dingstyle.me",
-    keywords=("markdown", "pygments", "preview", "bottle"),
+    keywords=("markdown", "pygments", "preview", "bottle", "github"),
     url = "https://github.com/metaphysiks/moo",
 	packages=['moo'],
 	include_package_data=True,
