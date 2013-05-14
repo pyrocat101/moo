@@ -1,0 +1,7 @@
+support
+test
+examples
+*.sock
+.npmignore
+.travis.yml
+Makefile
