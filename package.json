@@ -15,10 +15,10 @@
   "dependencies": {
     "express": "~3.2.4",
     "marked": "~0.2.8",
-    "lodash": "~1.2.1",
     "commander": "~1.1.1",
     "jade": "~0.30.0",
-    "highlight.js": "~7.3.0"
+    "highlight.js": "~7.3.0",
+    "fibers": "~1.0.0"
   },
   "main": "index",
   "devDependencies": {
