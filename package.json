@@ -20,5 +20,8 @@
     "jade": "~0.30.0",
     "highlight.js": "~7.3.0"
   },
-  "main": "index"
+  "main": "index",
+  "devDependencies": {
+    "coffee-script": "~1.6.2"
+  }
 }
