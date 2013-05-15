@@ -2,11 +2,11 @@
 html
   head
     meta(charset='utf-8')
-    title= title
+    //- title= title
     link(rel='stylesheet', type='text/css', href='/static/github.css')
   body
     .container
-      article.markdown-body(data-timestamp='#{timestamp}')
-        | !{html}
+      article.markdown-body
+        //- | !{html}
   script(type='text/javascript', src='/static/ender.min.js')
   script(type='text/javascript', src='/static/app.js')
