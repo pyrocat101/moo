@@ -6,8 +6,7 @@ html
     link(rel='stylesheet', type='text/css', href='/static/github.css')
   body
     .container
-      #markup
-        article#content.markdown-body(data-timestamp='#{timestamp}')
-          | !{html}
+      article.markdown-body(data-timestamp='#{timestamp}')
+        | !{html}
   script(type='text/javascript', src='/static/ender.min.js')
   script(type='text/javascript', src='/static/app.js')
