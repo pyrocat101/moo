@@ -1,8 +1,1 @@
-*.py[co]
-*~
-.*.sw[cop]
-build
-dist
-*.egg-info
-MANIFEST
-.ropeproject
+node_modules
