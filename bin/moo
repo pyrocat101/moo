@@ -1,70 +1,91 @@
 #!/usr/bin/env node
 
-var moo  = require('../'),
-    fs   = require('fs'),
-    util = require('util');
+var moo     = require('../'),
+    fs      = require('fs'),
+    util    = require('util'),
+    path    = require('path'),
+    colors  = require('colors'),
+    program = require('commander');
 
-var parsePath = function (arg) {
-  if (typeof arg !== 'string') {
-    console.error('invalid input: ' + arg);
-  } else if (arg[0] === '/') {
-    // already absolute path
-    return arg;
-  } else if (arg.length >= 2 && arg.substring(0, 2) === '~/') {
-    // home path
-    return path.join(process.env['HOME'], arg.substring(2));
-  } else {
-    // relative to current path
-    return path.join(process.cwd(), arg);
-  }
+var exportHtml = function (inputPath, output) {
+  var markup = new moo.Markup(inputPath);
+  markup.export(function (err, html) {
+    if (err)
+      console.error(err);
+    else
+      output.end(html);
+  });
 };
 
-var program = require('commander');
+var error = moo.error;
+var warn  = moo.warn;
+
+process.on('uncaughtException', function (err) {
+  error(err);
+  process.exit(1);
+});
+
+// additional help
+program.on('--help', function () {
+  console.log('  Examples:');
+  console.log('');
+  console.log('  - preview:'.yellow.bold);
+  console.log('    + accept a file to live preview in the web browser');
+  console.log('    + example: ' + '$ moo README.md'.green.bold);
+  console.log('  - export:'.yellow.bold);
+  console.log('    + accept multiple files to generate HTML respectively');
+  console.log('    + example: ' + '$ moo -e ch1.md ch2.md ch3.md'.green.bold);
+  console.log('');
+});
 
 program
-    .version('0.3.0')
-    .option('-e, --export', 'export rendered HTML only')
-    .option('-o, --outdir <dir>', 'path to output exported file(s) to', parsePath)
-    .option('-p, --port <port>',
-            util.format("server port [default: " + moo.DEFAULT_PORT + "]"),
-            parseInt,
-            moo.DEFAULT_PORT);
+  .version('0.3.0')
+  .usage('[options] <inputs>')
+  .option('-e, --export', 'export rendered HTML only')
+  .option('-p, --port <port>', "server port [default: random]", parseInt, 0)
+  .parse(process.argv);
 
-program.parse(process.argv);
+var args = program.args;
 
 if (!program.export) {
   // preview mode
-  var args = program.args;
   if (args.length !== 1) {
-    console.error("expect one input file");
-    process.exit(1);
-  }
-  if (!fs.existsSync(args[0])) {
-    console.error("input file '" + args[0] + "' doesn't exist");
+    error("expect one input file");
     process.exit(1);
   }
   var server = new moo.Server(args[0]);
   server.listen(program.port);
 } else {
-  // // export mode
-  // if (!args || args.length === 0) {
-  //   args = ['-'];
-  // }
-  // // process each arguments
-  // for (var i = 0; i < args.length; i++) {
-  //   var arg = args[i], inputPath;
-  //   // handle stdin to stdout
-  //   if (arg === '-') {
-  //     var input = '';
-  //     process.stdin.resume();
-  //     process.stdin.on('data', function (chunk) {
-  //       input += chunk;
-  //     });
-  //     process.stdin.on('end', function () {
-  //       export(input);
-  //     })
-  //   }
-  // }
+  // export mode
+  if (!args) {
+    console.error("no input files");
+    process.exit(1);
+  }
+  // process each arguments
+  for (var i = 0; i < args.length; args++) {
+    var arg = args[i];
+    var inputPath = path.resolve(process.cwd(), arg);
+
+    if (fs.existsSync(inputPath)) {
+      var inputStats = fs.statSync(inputPath);
+      if (!inputStats.isFile()) {
+        warn("ignoring directory: '%s'", inputPath);
+      } else {
+        var outdir = path.dirname(arg);
+        var outputName = path.basename(inputPath, path.extname(inputPath)) + '.html';
+        var outputPath = path.join(outdir, outputName);
+        var outputStream = fs.createWriteStream(outputPath, {
+          flags: 'w',
+          encoding: 'utf8'
+        });
+
+        console.log("export '%s'", inputPath);
+        exportHtml(inputPath, outputStream, program);
+      }
+    } else {
+      error("no such file or directory: '%s'", arg);
+    }
+  }
 }
 
 
