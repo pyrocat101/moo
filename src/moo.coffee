@@ -111,14 +111,14 @@ class Markup
 
   _stripYAMLFrontmatter: (source) ->
     source = source.toString()
-    content = source.replace(/^-{3}/, '').split('---')
-    if content.length is 1
-      result = content[0]
-    else
-      match = /\ntitle:\s*(.+)/i.exec content.shift()
-      if match then @title = match[1]
-      result = content.join('---')
-    return result
+    if /^-{3}\n/.test source
+      content = source.split('---\n')
+      content.shift()
+      if content.length >= 2
+        match = /(?:^|\n)title:\s*(.+)/i.exec content.shift()
+        if match then @title = match[1]
+        return content.join '---\n'
+    return source
 
 Markup.ftdetects =
   'markdown': /\.(markdown|md|mdown|mkd|mkdn)$/
