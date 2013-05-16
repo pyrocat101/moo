@@ -20,7 +20,8 @@ class Server
     app.use express.bodyParser()
 
     # static files
-    app.use '/static', express.static(__dirname + '/static')
+    app.use '/', express.static(process.cwd())
+    app.use '/__moo__', express.static(__dirname + '/static')
 
     # environment-specific
     app.configure 'development', ->
@@ -97,14 +98,16 @@ class Markup
     unless found then callback new Error('renderer not found'), null
 
   export: (callback) ->
-    unless @exportTemplate?
-      @exportTemplate = fs.readFileSync(__dirname + '/views/export.jade')
-    render = jade.compile @exportTemplate
+    # lazy template compilation
+    unless Markup.exportRender?
+      templatePath = __dirname + '/views/export.jade'
+      template = fs.readFileSync templatePath
+      Markup.exportRender = jade.compile template, {filename: templatePath}
     @html (err, body) =>
       if err
         callback err, null
       else
-        html = render {title: @title, html: body}
+        html = Markup.exportRender {title: @title, html: body}
         callback null, html
 
   watch: (callback) ->

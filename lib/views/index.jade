@@ -1,12 +1,7 @@
-!!! 5
-html
-  head
-    meta(charset='utf-8')
-    //- title= title
-    link(rel='stylesheet', type='text/css', href='/static/github.css')
-  body
-    .container
-      article.markdown-body
-        //- | !{html}
-  script(type='text/javascript', src='/static/ender.min.js')
-  script(type='text/javascript', src='/static/app.js')
+extends base
+
+block css
+  link(rel='stylesheet', type='text/css', href='/__moo__/github.min.css')
+
+block js
+  script(type='text/javascript', src='/__moo__/ender-app.js')

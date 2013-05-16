@@ -22,7 +22,8 @@
     "open": "0.0.3"
   },
   "devDependencies": {
-    "coffee-script": "~1.6.2"
+    "coffee-script": "~1.6.2",
+    "ender": "~1.0.2"
   },
   "main": "index"
 }
