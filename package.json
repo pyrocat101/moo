@@ -34,7 +34,7 @@
   },
   "scripts": {
     "build": "cake build",
-    "build-all": "npm run build && npm run build-js npm run build-css",
+    "build-all": "npm run build && npm run build-js && npm run build-css",
     "build-js": "cake build:js",
     "build-css": "cake build:css",
     "watch": "cake watch"

@@ -9,6 +9,23 @@ open     = require 'open'
 isString = (obj) -> Object::toString.call(obj) is '[object String]'
 isRegExp = (obj) -> Object::toString.call(obj) is '[object RegExp]'
 
+error = (args...) ->
+  args.forEach (a, i) -> if a instanceof Error then args[i] = a.message
+  console.error "#{'error:'.red} #{util.format.apply(null, args)}".bold
+warn = ->
+  console.warn "#{'warning:'.red} #{util.format.apply(null, arguments)}".bold
+
+monthsShort = 'Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec'.split('_')
+log = ->
+  now = new Date()
+  time = [now.getHours(), now.getMinutes(), now.getSeconds()]
+  [hh, mm, ss] = time.map (s) -> if s < 10 then '0' + s else s.toString()
+  console.log "#{hh}:#{mm}:#{ss} - #{util.format.apply(null, arguments)}"
+
+module.exports.error = error
+module.exports.warn = warn
+module.exports.log = log
+
 class Server
   # construct a server for a markup object or markup filename
   constructor: (markup) ->
@@ -48,23 +65,24 @@ class Server
       }
       markup.watch (err) ->
         if err
-          console.error err
+          error err.toString()
+          throw err
         else
-          console.log "Detected file change in #{path.basename(markup.filename)}"
+          log "change detected: '#{path.basename(markup.filename)}'"
           res.write 'data: updated\n\n'
       res.on 'close', -> markup.unwatch()
     # rendered content
     app.get '/content', (req, res) ->
       markup.html (err, html) ->
         if err
-          console.error err
+          error err.toString()
           throw err
         res.json {title: markup.title, html: html}
 
   listen: (port=0) ->
     @server = @app.listen port
     url = "http://localhost:#{@server.address().port}"
-    console.log "Server listening at #{url}"
+    console.log "Server listening at #{url.green.bold}. Press Ctrl-C to stop."
     # open URL in browser
     open url
 
@@ -76,7 +94,7 @@ class Markup
   # wrapper object for files written in markup language
   constructor: (filename) ->
     unless fs.existsSync filename
-      throw new Error "input file '#{filename}' doesn't exist"
+      throw new Error "no such file or directory: '#{filename}'"
     @filename = filename = path.resolve(process.cwd(), filename)
     @title = "#{path.basename(filename)} - #{path.dirname(filename)}"
 

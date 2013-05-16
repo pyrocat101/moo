@@ -17,22 +17,30 @@ var exportHtml = function (inputPath, output) {
   });
 };
 
+var error = moo.error;
+var warn  = moo.warn;
+
+process.on('uncaughtException', function (err) {
+  error(err);
+  process.exit(1);
+});
+
 // additional help
 program.on('--help', function () {
   console.log('  Examples:');
   console.log('');
-  console.log('  - preview:'.yellow);
+  console.log('  - preview:'.yellow.bold);
   console.log('    + accept a file to live preview in the web browser');
-  console.log('    + example: ' + '$ moo README.md'.cyan);
-  console.log('  - export:'.yellow);
+  console.log('    + example: ' + '$ moo README.md'.green.bold);
+  console.log('  - export:'.yellow.bold);
   console.log('    + accept multiple files to generate HTML respectively');
-  console.log('    + example: ' + '$ moo -e ch1.md ch2.md ch3.md'.cyan);
+  console.log('    + example: ' + '$ moo -e ch1.md ch2.md ch3.md'.green.bold);
   console.log('');
 });
 
 program
   .version('0.3.0')
-  .usage('[options] <file ...>')
+  .usage('[options] <inputs>')
   .option('-e, --export', 'export rendered HTML only')
   .option('-p, --port <port>', "server port [default: random]", parseInt, 0)
   .parse(process.argv);
@@ -42,11 +50,7 @@ var args = program.args;
 if (!program.export) {
   // preview mode
   if (args.length !== 1) {
-    console.error("expect one input file");
-    process.exit(1);
-  }
-  if (!fs.existsSync(args[0])) {
-    console.error("input file '" + args[0] + "' doesn't exist");
+    error("expect one input file");
     process.exit(1);
   }
   var server = new moo.Server(args[0]);
@@ -54,7 +58,7 @@ if (!program.export) {
 } else {
   // export mode
   if (!args) {
-    console.error("no input file specified");
+    console.error("no input files");
     process.exit(1);
   }
   // process each arguments
@@ -65,7 +69,7 @@ if (!program.export) {
     if (fs.existsSync(inputPath)) {
       var inputStats = fs.statSync(inputPath);
       if (!inputStats.isFile()) {
-        console.warn("ignoring directory '" + inputPath + "'");
+        warn("ignoring directory: '%s'", inputPath);
       } else {
         var outdir = path.dirname(arg);
         var outputName = path.basename(inputPath, path.extname(inputPath)) + '.html';
@@ -75,11 +79,11 @@ if (!program.export) {
           encoding: 'utf8'
         });
 
-        console.log("exporting '" + inputPath + "'");
+        console.log("export '%s'", inputPath);
         exportHtml(inputPath, outputStream, program);
       }
     } else {
-      console.error("input file '" + arg + "' not found");
+      error("no such file or directory: '%s'", arg);
     }
   }
 }
