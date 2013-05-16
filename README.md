@@ -1,71 +1,49 @@
 # Moo
 
-Moo is an editor-agnostic markdown live previewer. Once you save your
-file, the rendered HTML will automatically get reloaded in your favourite
-browser.
+```
+   _____________________
+  /   _ __   ___  ___   \
+  |  | '  \ / _ \/ _ \  |
+  \  |_|_|_|\___/\___/  /
+   ---------------------
+          \   ^__^
+           \  (oo)\_______
+              (__)\       )\/\\
+                  ||----w |
+                  ||     ||
+```
 
-![Screenshot](http://i.minus.com/ibnNN6nGKyGKD3.png)
-
-It uses github's own [sundown][sundown] library to provide github
-flavored markdown preview. The stylesheet of the preview is extracted
-from the github website.
+moo is an **editor-agnostic** markdown live previewer. Write markdown in your favorite editor, save changes, and view output in your browser **instantly**.
 
 ## Installation
 
-```
-pip install moo
+``` bash
+npm install -g moo.js
 ```
 
 ## Usage
 
-Opens preview in browser with server listening on 3000:
+**Preview mode:** open live preview for `README.md` in broswer:
 
-```
-moo --port 3000 your-doc.markdown
-```
-
-Export to HTML only:
-
-```
-moo -o exported.html your-doc.markdown
+``` bash
+moo README.md
 ```
 
-## RESTful API
+**Export only:** convert your markdown files to HTML docs:
 
-| Action                  | HTTP Method | Request URL                      | Response Body           |
-|-------------------------|-------------|----------------------------------|-------------------------|
-| Get preview             | GET         | http://localhost:\<port\>        | \<Preview content\>     |
-| Get updated content     | POST        | http://localhost:\<port\>/update | \<Rendered body\>       |
-| Close server            | DELETE      | http://localhost:\<port\>        |                         |
+``` bash
+moo -e ch1.md ch2.md ch3.md # produces ch{1,2,3}.html
+```
 
-See [moo.py][moo-src] for more details.
+## Features
 
-## License
+* Github-flavored markdown out of box
+* Strip YAML front-matter automatically
+* Syntax highlight in code-blocks
+* Github look-n-feel
 
-(The MIT License)
+![Screenshot](http://i.minus.com/ibnNN6nGKyGKD3.png)
 
-Copyright (c) 2012-2013 metaphysiks &lt;i@dingstyle.me&gt;
+## LICENSE
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-'Software'), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS
-OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-[sundown]: https://github.com/vmg/sundown
-[imd]: https://github.com/suan/instant-markdown-d
-[misaka]: https://github.com/FSX/misaka
-[moo-src]: moo/moo.py
+MIT
