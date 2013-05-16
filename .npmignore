@@ -1,5 +1,5 @@
 support
-test
+tests
 examples
 *.sock
 .npmignore
