@@ -14,12 +14,12 @@
   "author": "Linjie Ding",
   "dependencies": {
     "express": "~3.2.4",
-    "marked": "~0.2.8",
     "commander": "~1.1.1",
     "jade": "~0.30.0",
     "highlight.js": "~7.3.0",
     "chokidar": "~0.6.2",
-    "robotskirt": "~2.7.1"
+    "robotskirt": "~2.7.1",
+    "open": "0.0.3"
   },
   "devDependencies": {
     "coffee-script": "~1.6.2"

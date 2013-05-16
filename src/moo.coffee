@@ -4,8 +4,7 @@ util     = require 'util'
 fs       = require 'fs'
 jade     = require 'jade'
 chokidar = require 'chokidar'
-
-module.exports.DEFAULT_PORT = DEFAULT_PORT = 7777
+open     = require 'open'
 
 isString = (obj) -> Object::toString.call(obj) is '[object String]'
 isRegExp = (obj) -> Object::toString.call(obj) is '[object RegExp]'
@@ -61,9 +60,12 @@ class Server
           throw err
         res.json {title: markup.title, html: html}
 
-  listen: (port=DEFAULT_PORT) ->
-    console.log "Server listening at #{port}"
+  listen: (port=0) ->
     @server = @app.listen port
+    url = "http://localhost:#{@server.address().port}"
+    console.log "Server listening at #{url}"
+    # open URL in browser
+    open url
 
   close: -> @server.close()
 
@@ -94,11 +96,16 @@ class Markup
         found = true
     unless found then callback new Error('renderer not found'), null
 
-  export: ->
+  export: (callback) ->
     unless @exportTemplate?
       @exportTemplate = fs.readFileSync(__dirname + '/views/export.jade')
     render = jade.compile @exportTemplate
-    render @html()
+    @html (err, body) =>
+      if err
+        callback err, null
+      else
+        html = render {title: @title, html: body}
+        callback null, html
 
   watch: (callback) ->
     @watcher = watcher = chokidar.watch @filename, {persistent: true}

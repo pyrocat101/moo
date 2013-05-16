@@ -75,23 +75,9 @@ kbd {
 .container {
     max-width: 920px;
     margin: 0 auto 20px auto;
-    padding: 3px;
+    padding: 1em;
     padding-top: 30px;
 }
-/*#header {
-    background: #FAFAFA;
-    background: -moz-linear-gradient(#FAFAFA, #EAEAEA);
-    background: -webkit-linear-gradient(#FAFAFA, #EAEAEA);
-    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#fafafa', endColorstr='#eaeaea')";
-    border-bottom: 1px solid #CACACA;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4),0 0 10px rgba(0, 0, 0, 0.1);
-}*/
-/*#markup {
-    padding: 3px;
-}
-#markup article {
-    padding-top: 30px;
-}*/
 .markdown-body {
     font-size: 14px;
     line-height: 1.6;
