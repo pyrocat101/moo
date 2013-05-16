@@ -1,18 +1,7 @@
-fs    = require 'fs'
-path  = require 'path'
+fs     = require 'fs'
+path   = require 'path'
+colors = require 'colors'
 {spawn, exec} = require 'child_process'
-
-# ANSI Terminal Colors.
-bold = red = green = reset = ''
-unless process.env.NODE_DISABLE_COLORS
-  bold  = '\x1B[0;1m'
-  red   = '\x1B[0;31m'
-  green = '\x1B[0;32m'
-  reset = '\x1B[0m'
-
-# Log a message with a color.
-log = (message, color, explanation) ->
-  console.log color + message + reset + ' ' + (explanation or '')
 
 embedImages = (cssPath) ->
   imgRegex = /url\s?\(['"]?(.*?)(?=['"]?\))/gi
@@ -24,7 +13,7 @@ embedImages = (cssPath) ->
       ext = imgPath.substr imgPath.lastIndexOf('.') + 1
       css = css.replace match[1], "data:image/#{ext};base64,#{img}"
     catch e
-      log "Image not found (%s)", red
+      console.error "Image not found: #{imgPath.red}"
   return css
 
 compressCSS = (css) ->

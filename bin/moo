@@ -4,6 +4,7 @@ var moo     = require('../'),
     fs      = require('fs'),
     util    = require('util'),
     path    = require('path'),
+    colors  = require('colors'),
     program = require('commander');
 
 var exportHtml = function (inputPath, output) {
@@ -16,8 +17,22 @@ var exportHtml = function (inputPath, output) {
   });
 };
 
+// additional help
+program.on('--help', function () {
+  console.log('  Examples:');
+  console.log('');
+  console.log('  - preview:'.yellow);
+  console.log('    + accept a file to live preview in the web browser');
+  console.log('    + example: ' + '$ moo README.md'.cyan);
+  console.log('  - export:'.yellow);
+  console.log('    + accept multiple files to generate HTML respectively');
+  console.log('    + example: ' + '$ moo -e ch1.md ch2.md ch3.md'.cyan);
+  console.log('');
+});
+
 program
   .version('0.3.0')
+  .usage('[options] <file ...>')
   .option('-e, --export', 'export rendered HTML only')
   .option('-p, --port <port>', "server port [default: random]", parseInt, 0)
   .parse(process.argv);

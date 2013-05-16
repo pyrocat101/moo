@@ -11,6 +11,8 @@
     "type": "git",
     "url": "https://github.com/metaphysiks/moo.git"
   },
+  "preferGlobal": true,
+  "license": "MIT",
   "author": "Linjie Ding",
   "dependencies": {
     "express": "~3.2.4",
@@ -19,11 +21,25 @@
     "highlight.js": "~7.3.0",
     "chokidar": "~0.6.2",
     "robotskirt": "~2.7.1",
-    "open": "0.0.3"
+    "open": "0.0.3",
+    "colors": "~0.6.0-1"
   },
   "devDependencies": {
     "coffee-script": "~1.6.2",
     "ender": "~1.0.2"
   },
-  "main": "index"
+  "main": "./index.js",
+  "bin": {
+    "moo": "./bin/moo"
+  },
+  "scripts": {
+    "build": "cake build",
+    "build-all": "npm run build && npm run build-js npm run build-css",
+    "build-js": "cake build:js",
+    "build-css": "cake build:css",
+    "watch": "cake watch"
+  },
+  "engines": {
+    "node": ">=0.10"
+  }
 }
