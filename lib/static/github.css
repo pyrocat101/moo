@@ -57,7 +57,7 @@ kbd {
   position: absolute;
   top: -5px;
   left: 0;
-  background: url("/static/images/github-status.png");
+  background: url("github-status.png");
   width: 26px;
   height: 26px;
   display: block;
@@ -151,7 +151,7 @@ kbd {
     margin: 15px 0;
 }
 .markdown-body hr {
-    background: url("/static/github-dirty-shade.png") repeat-x scroll 0 0 transparent;
+    background: url("github-dirty-shade.png") repeat-x scroll 0 0 transparent;
     border: 0 none;
     color: #CCCCCC;
     height: 4px;
