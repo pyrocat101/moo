@@ -39,7 +39,7 @@ program.on('--help', function () {
 });
 
 program
-  .version('0.3.0')
+  .version('0.3.1')
   .usage('[options] <inputs>')
   .option('-e, --export', 'export rendered HTML only')
   .option('-p, --port <port>', "server port [default: random]", parseInt, 0)
