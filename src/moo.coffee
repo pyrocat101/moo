@@ -37,7 +37,7 @@ class Server
     app.use express.bodyParser()
 
     # static files
-    app.use '/', express.static(process.cwd())
+    app.use '/', express.static(path.dirname(markup.filename))
     app.use '/__moo__', express.static(__dirname + '/static')
 
     # environment-specific
@@ -82,7 +82,7 @@ class Server
   listen: (port=0) ->
     @server = @app.listen port
     url = "http://localhost:#{@server.address().port}"
-    console.log "Server listening at #{url.green.bold}. Press Ctrl-C to stop."
+    console.log "Server listening at #{url.blue.bold}. Press Ctrl-C to stop."
     # open URL in browser
     open url
 

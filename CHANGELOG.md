@@ -1,3 +1,7 @@
+## 0.3.1 (May 17, 2013)
+
+- Fixed issue #4
+
 ## 0.3.0 (May 16, 2013)
 
 Completely rewritten in node.js.

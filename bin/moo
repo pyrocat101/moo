@@ -31,10 +31,10 @@ program.on('--help', function () {
   console.log('');
   console.log('  - preview:'.yellow.bold);
   console.log('    + accept a file to live preview in the web browser');
-  console.log('    + example: ' + '$ moo README.md'.green.bold);
+  console.log('    + example: ' + '$ moo README.md'.cyan.bold);
   console.log('  - export:'.yellow.bold);
   console.log('    + accept multiple files to generate HTML respectively');
-  console.log('    + example: ' + '$ moo -e ch1.md ch2.md ch3.md'.green.bold);
+  console.log('    + example: ' + '$ moo -e ch1.md ch2.md ch3.md'.cyan.bold);
   console.log('');
 });
 
