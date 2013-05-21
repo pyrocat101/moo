@@ -1,6 +1,6 @@
 ## 0.3.2 (May 21, 2013)
 
-- Fixed issue #5
+- Fixed issue #6
 
 ## 0.3.1 (May 17, 2013)
 

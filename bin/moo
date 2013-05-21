@@ -38,8 +38,10 @@ program.on('--help', function () {
   console.log('');
 });
 
+var version = JSON.parse(fs.readFileSync(__dirname + '/../package.json')).version;
+
 program
-  .version('0.3.1')
+  .version(version)
   .usage('[options] <inputs>')
   .option('-e, --export', 'export rendered HTML only')
   .option('-p, --port <port>', "server port [default: random]", parseInt, 0)
