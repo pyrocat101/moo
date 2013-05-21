@@ -56,8 +56,10 @@ class Server
       @close()
     # update event stream
     app.get '/update-event', (req, res) =>
-      # let request last as long as possible
-      req.socket.setTimeout Infinity
+      # let socket last as long as possible
+      req.socket.setTimeout 0
+      res.socket.setTimeout 0
+
       res.set {
         'Content-Type': 'text/event-stream'
         'Cache-Control': 'no-cache'
