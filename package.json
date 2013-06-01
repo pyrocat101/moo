@@ -1,6 +1,6 @@
 {
   "name": "moo.js",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "Editor-agnostic markdown live previewer",
   "keywords": [
     "markdown",
@@ -21,15 +21,16 @@
     "jade": "~0.30.0",
     "highlight.js": "~7.3.0",
     "chokidar": "~0.6.2",
-    "robotskirt": "~2.7.1",
     "open": "0.0.3",
-    "colors": "~0.6.0-1"
+    "colors": "~0.6.0-1",
+    "marked": "~0.2.9",
+    "lodash": "~1.2.1"
   },
   "devDependencies": {
     "coffee-script": "~1.6.2",
     "ender": "~1.0.2"
   },
-  "main": "./index.js",
+  "main": "./moo",
   "bin": {
     "moo": "./bin/moo"
   },
@@ -38,7 +39,7 @@
     "build-all": "npm run build && npm run build-js && npm run build-css",
     "build-js": "cake build:js",
     "build-css": "cake build:css",
-    "watch": "cake watch"
+    "watch": "cake -w build"
   },
   "engines": {
     "node": ">=0.10"

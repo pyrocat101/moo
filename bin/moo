@@ -1,94 +1,99 @@
 #!/usr/bin/env node
 
-var moo     = require('../'),
-    fs      = require('fs'),
-    util    = require('util'),
-    path    = require('path'),
-    colors  = require('colors'),
-    program = require('commander');
+var path = require('path');
+var fs = require('fs');
+var dir = path.join(path.dirname(fs.realpathSync(__filename)), '../');
+require(dir + 'moo.js').run();
 
-var exportHtml = function (inputPath, output) {
-  var markup = new moo.Markup(inputPath);
-  markup.export(function (err, html) {
-    if (err)
-      console.error(err);
-    else
-      output.end(html);
-  });
-};
+// var moo     = require('../'),
+//     fs      = require('fs'),
+//     util    = require('util'),
+//     path    = require('path'),
+//     colors  = require('colors'),
+//     program = require('commander');
 
-var error = moo.error;
-var warn  = moo.warn;
+// var exportHtml = function (inputPath, output) {
+//   var markup = new moo.Markup(inputPath);
+//   markup.export(function (err, html) {
+//     if (err)
+//       console.error(err);
+//     else
+//       output.end(html);
+//   });
+// };
 
-process.on('uncaughtException', function (err) {
-  error(err);
-  process.exit(1);
-});
+// var error = moo.error;
+// var warn  = moo.warn;
 
-// additional help
-program.on('--help', function () {
-  console.log('  Examples:');
-  console.log('');
-  console.log('  - preview:'.yellow.bold);
-  console.log('    + accept a file to live preview in the web browser');
-  console.log('    + example: ' + '$ moo README.md'.cyan.bold);
-  console.log('  - export:'.yellow.bold);
-  console.log('    + accept multiple files to generate HTML respectively');
-  console.log('    + example: ' + '$ moo -e ch1.md ch2.md ch3.md'.cyan.bold);
-  console.log('');
-});
+// process.on('uncaughtException', function (err) {
+//   error(err);
+//   process.exit(1);
+// });
 
-var version = JSON.parse(fs.readFileSync(__dirname + '/../package.json')).version;
+// // additional help
+// program.on('--help', function () {
+//   console.log('  Examples:');
+//   console.log('');
+//   console.log('  - preview:'.yellow.bold);
+//   console.log('    + accept a file to live preview in the web browser');
+//   console.log('    + example: ' + '$ moo README.md'.cyan.bold);
+//   console.log('  - export:'.yellow.bold);
+//   console.log('    + accept multiple files to generate HTML respectively');
+//   console.log('    + example: ' + '$ moo -e ch1.md ch2.md ch3.md'.cyan.bold);
+//   console.log('');
+// });
 
-program
-  .version(version)
-  .usage('[options] <inputs>')
-  .option('-e, --export', 'export rendered HTML only')
-  .option('-p, --port <port>', "server port [default: random]", parseInt, 0)
-  .parse(process.argv);
+// var version = JSON.parse(fs.readFileSync(__dirname + '/../package.json')).version;
 
-var args = program.args;
+// program
+//   .version(version)
+//   .usage('[options] <inputs>')
+//   .option('-e, --export', 'export rendered HTML only')
+//   .option('-p, --port <port>', "server port [default: random]", parseInt, 0)
+//   .parse(process.argv);
 
-if (!program.export) {
-  // preview mode
-  if (args.length !== 1) {
-    error("expect one input file");
-    process.exit(1);
-  }
-  var server = new moo.Server(args[0]);
-  server.listen(program.port);
-} else {
-  // export mode
-  if (!args) {
-    console.error("no input files");
-    process.exit(1);
-  }
-  // process each arguments
-  for (var i = 0; i < args.length; args++) {
-    var arg = args[i];
-    var inputPath = path.resolve(process.cwd(), arg);
+// var args = program.args;
 
-    if (fs.existsSync(inputPath)) {
-      var inputStats = fs.statSync(inputPath);
-      if (!inputStats.isFile()) {
-        warn("ignoring directory: '%s'", inputPath);
-      } else {
-        var outdir = path.dirname(arg);
-        var outputName = path.basename(inputPath, path.extname(inputPath)) + '.html';
-        var outputPath = path.join(outdir, outputName);
-        var outputStream = fs.createWriteStream(outputPath, {
-          flags: 'w',
-          encoding: 'utf8'
-        });
+// if (!program.export) {
+//   // preview mode
+//   if (args.length !== 1) {
+//     error("expect one input file");
+//     process.exit(1);
+//   }
+//   var server = new moo.Server(args[0]);
+//   server.listen(program.port);
+// } else {
+//   // export mode
+//   if (!args) {
+//     console.error("no input files");
+//     process.exit(1);
+//   }
+//   // process each arguments
+//   for (var i = 0; i < args.length; args++) {
+//     var arg = args[i];
+//     var inputPath = path.resolve(process.cwd(), arg);
 
-        console.log("export '%s'", inputPath);
-        exportHtml(inputPath, outputStream, program);
-      }
-    } else {
-      error("no such file or directory: '%s'", arg);
-    }
-  }
-}
+//     if (fs.existsSync(inputPath)) {
+//       var inputStats = fs.statSync(inputPath);
+//       if (!inputStats.isFile()) {
+//         warn("ignoring directory: '%s'", inputPath);
+//       } else {
+//         var outdir = path.dirname(arg);
+//         var outputName = path.basename(inputPath, path.extname(inputPath)) + '.html';
+//         var outputPath = path.join(outdir, outputName);
+//         var outputStream = fs.createWriteStream(outputPath, {
+//           flags: 'w',
+//           encoding: 'utf8'
+//         });
+
+//         console.log("export '%s'", inputPath);
+//         exportHtml(inputPath, outputStream, program);
+//       }
+//     } else {
+//       error("no such file or directory: '%s'", arg);
+//     }
+//   }
+// }
 
 
 

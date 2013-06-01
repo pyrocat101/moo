@@ -3,6 +3,8 @@ path   = require 'path'
 colors = require 'colors'
 {spawn, exec} = require 'child_process'
 
+option '-w', '--watch', 'continually build the docco library'
+
 embedImages = (cssPath) ->
   imgRegex = /url\s?\(['"]?(.*?)(?=['"]?\))/gi
   css = fs.readFileSync cssPath, 'utf-8'
@@ -48,12 +50,12 @@ task 'build:js', 'minify client-side scripts', ->
 
 coffeeBin = path.join process.cwd(), 'node_modules/.bin/coffee'
 
-task 'build', 'build source from src/*.coffee to lib/*.js', ->
-  exec "#{coffeeBin} -co lib/ src/", (err, stdout, stderr) ->
-    throw err if err
-    console.log stdout + stderr
+# task 'build', 'build source from src/*.coffee to lib/*.js', ->
+#   exec "#{coffeeBin} -co lib/ src/", (err, stdout, stderr) ->
+#     throw err if err
+#     console.log stdout + stderr
 
-task 'watch', 'continually build source with --watch', ->
-  coffee = spawn coffeeBin, ['-cw', '-o', 'lib', 'src']
+task 'build', 'continually build source with --watch', (options) ->
+  coffee = spawn coffeeBin, ['-c' + (if options.watch then 'w' else ''), '.']
   coffee.stdout.on 'data', (data) -> console.log data.toString().trim()
   coffee.stderr.on 'data', (data) -> console.log data.toString().trim()
