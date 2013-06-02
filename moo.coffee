@@ -10,17 +10,20 @@ _           = require 'lodash'
 {watch}     = require 'chokidar'
 {highlight} = require 'highlight.js'
 
+
 error   = (msg) -> console.error "#{'error'.red} - #{msg}".bold
 warn    = (msg) -> console.warn  "#{'warning'.magenta} - #{msg}".bold
 timeLog = (msg) -> console.log   "#{(new Date).toLocaleTimeString()} - #{msg}"
+
 
 preview = (options = {}) ->
   configure options
 
   unless config.sources.length is 1
     error 'expect one input file'
-  else
-    serve()
+
+  serve()
+
 
 serve = ->
   source  = config.sources[0]
@@ -46,8 +49,12 @@ serve = ->
         throw err
 
       text = buffer.toString()
-      content = parse source, text
-      res.json content
+      parse source, text, (err, content) ->
+        if err
+          console.error err
+          throw err
+        res.json content
+
 
   app.get '/update-event', (req, res) ->
     # let socket alive as long as possible
@@ -67,14 +74,13 @@ serve = ->
     watcher.on 'unlink', ->
       error "removed: #{source}"
       watcher.close()
-      # FIXME: test
-      # res.end()
       server.close()
     watcher.on 'error', (err) ->
       error err.message
       throw err
 
     res.on 'close', -> watcher.close()
+
 
   listen = (port) ->
     server = app.listen port
@@ -86,7 +92,8 @@ serve = ->
 
   return listen(config.port)
 
-exportHtml = (options = {}) ->
+
+exports = (options = {}) ->
   configure options
 
   template = "#{config.layout}/export.jade"
@@ -108,15 +115,20 @@ exportHtml = (options = {}) ->
       throw err if err
 
       text = buffer.toString()
-      content = parse source, text
-      write source, content
-      nextFile() if files.length
+      parse source, text, (err, content) ->
+        throw err if err
+        write source, content
+        nextFile() if files.length
 
   nextFile()
 
-parse = (source, text) ->
+
+parse = (source, text, cb) ->
   title = path.basename source
   hasTitle = false
+
+  # option: --pandoc
+  return pandoc(title, text, cb) if config.pandoc
 
   # strip YAML font-matter
   stripFrontmatter = ->
@@ -130,28 +142,50 @@ parse = (source, text) ->
           title = match[1]
         text = mainmatter.join '---\n'
 
-  # FIXME: pandoc support
   tokens = marked.lexer text
   unless hasTitle
     first = tokens[0]
     if first and first.type is 'heading' and first.depth is 1
       title = first.text
 
-  # FIXME: code highlight
   html = marked.parser tokens
+  cb null, title: title, html: html
 
-  title: title, html: html
 
+pandoc = (title, text, cb) ->
+  pdc = require 'pdc'
+  options = ['--highlight-style', 'pygments']
+  pdc text, 'markdown', 'html', options, (err, result) ->
+    if err
+      cb err, null
+    else
+      cb null, title: title, html: result
+
+
+# default config
 config =
   layout: 'github'
   port:   0
+  pandoc: false
 
+
+# process configurations
 configure = (options) ->
   _.extend config, _.pick(options, _.keys(config)...)
 
   config.resources = "#{__dirname}/resources"
   config.layout    = "#{config.resources}/#{config.layout}"
   config.sources   = options.args.sort()
+
+
+init = ->
+  marked.setOptions
+    smartypants: true
+    highlight: (code, lang) ->
+      if lang?
+        return highlight(lang, code).value
+      return code
+
 
 examples = [
   "  Examples:"
@@ -164,7 +198,9 @@ examples = [
   "    + example: #{'$ moo -e ch1.md ch2.md ch3.md'.cyan.bold}"
   ""
 ].join('\n')
+
 version = JSON.parse(fs.readFileSync("#{__dirname}/package.json")).version
+
 
 run = (args = process.argv) ->
   c = config
@@ -172,22 +208,17 @@ run = (args = process.argv) ->
     .usage('[options] files')
     .on('--help', -> console.log examples)
     .option('-e, --export', 'export mode')
-    .option('-l, --layout <name>', 'choose a layout (github or docco)', c.layout)
     .option('-p, --port <port>', 'server port (default: random)', parseInt, c.port)
     .option('--pandoc', 'use pandoc markdown converter')
     .parse(args)
     .name = "moo"
 
   if commander.args.length
-    marked.setOptions
-      smartypants: true
-      highlight: (code, lang) ->
-        if lang?
-          return highlight(lang, code).value
-        return code
-    if commander.export then exportHtml(commander) else preview(commander)
+    init()
+    if commander.export then exports(commander) else preview(commander)
   else
     console.log commander.helpInformation()
 
+
 # public API
-Moo = module.exports = {run, preview, exportHtml, parse}
+Moo = module.exports = {run, preview, exports, parse}

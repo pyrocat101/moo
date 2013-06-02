@@ -1,5 +1,5 @@
 (function() {
-  var Moo, colors, commander, config, configure, error, examples, exportHtml, express, fs, highlight, jade, marked, open, parse, path, preview, run, serve, timeLog, version, warn, watch, _,
+  var Moo, colors, commander, config, configure, error, examples, exports, express, fs, highlight, init, jade, marked, open, pandoc, parse, path, preview, run, serve, timeLog, version, warn, watch, _,
     __slice = [].slice;
 
   express = require('express');
@@ -42,10 +42,9 @@
     }
     configure(options);
     if (config.sources.length !== 1) {
-      return error('expect one input file');
-    } else {
-      return serve();
+      error('expect one input file');
     }
+    return serve();
   };
 
   serve = function() {
@@ -64,15 +63,20 @@
     });
     app.get('/content', function(req, res) {
       return fs.readFile(source, function(err, buffer) {
-        var content, text;
+        var text;
 
         if (err) {
           error(err.message);
           throw err;
         }
         text = buffer.toString();
-        content = parse(source, text);
-        return res.json(content);
+        return parse(source, text, function(err, content) {
+          if (err) {
+            console.error(err);
+            throw err;
+          }
+          return res.json(content);
+        });
       });
     });
     app.get('/update-event', function(req, res) {
@@ -117,7 +121,7 @@
     return listen(config.port);
   };
 
-  exportHtml = function(options) {
+  exports = function(options) {
     var files, nextFile, template, write;
 
     if (options == null) {
@@ -144,27 +148,34 @@
 
       source = files.shift();
       return fs.readFile(source, function(err, buffer) {
-        var content, text;
+        var text;
 
         if (err) {
           throw err;
         }
         text = buffer.toString();
-        content = parse(source, text);
-        write(source, content);
-        if (files.length) {
-          return nextFile();
-        }
+        return parse(source, text, function(err, content) {
+          if (err) {
+            throw err;
+          }
+          write(source, content);
+          if (files.length) {
+            return nextFile();
+          }
+        });
       });
     };
     return nextFile();
   };
 
-  parse = function(source, text) {
+  parse = function(source, text, cb) {
     var first, hasTitle, html, stripFrontmatter, title, tokens;
 
     title = path.basename(source);
     hasTitle = false;
+    if (config.pandoc) {
+      return pandoc(title, text, cb);
+    }
     stripFrontmatter = function() {
       var mainmatter, match;
 
@@ -189,15 +200,33 @@
       }
     }
     html = marked.parser(tokens);
-    return {
+    return cb(null, {
       title: title,
       html: html
-    };
+    });
+  };
+
+  pandoc = function(title, text, cb) {
+    var options, pdc;
+
+    pdc = require('pdc');
+    options = ['--highlight-style', 'pygments'];
+    return pdc(text, 'markdown', 'html', options, function(err, result) {
+      if (err) {
+        return cb(err, null);
+      } else {
+        return cb(null, {
+          title: title,
+          html: result
+        });
+      }
+    });
   };
 
   config = {
     layout: 'github',
-    port: 0
+    port: 0,
+    pandoc: false
   };
 
   configure = function(options) {
@@ -205,6 +234,18 @@
     config.resources = "" + __dirname + "/resources";
     config.layout = "" + config.resources + "/" + config.layout;
     return config.sources = options.args.sort();
+  };
+
+  init = function() {
+    return marked.setOptions({
+      smartypants: true,
+      highlight: function(code, lang) {
+        if (lang != null) {
+          return highlight(lang, code).value;
+        }
+        return code;
+      }
+    });
   };
 
   examples = ["  Examples:", "", "  - preview:".yellow.bold, "    + live preview markdown in the web browser", "    + example: " + '$ moo README.md'.cyan.bold, "  - export:".yellow.bold, "    + export markdown files to html docs", "    + example: " + '$ moo -e ch1.md ch2.md ch3.md'.cyan.bold, ""].join('\n');
@@ -220,18 +261,11 @@
     c = config;
     commander.version(version).usage('[options] files').on('--help', function() {
       return console.log(examples);
-    }).option('-e, --export', 'export mode').option('-l, --layout <name>', 'choose a layout (github or docco)', c.layout).option('-p, --port <port>', 'server port (default: random)', parseInt, c.port).option('--pandoc', 'use pandoc markdown converter').parse(args).name = "moo";
+    }).option('-e, --export', 'export mode').option('-p, --port <port>', 'server port (default: random)', parseInt, c.port).option('--pandoc', 'use pandoc markdown converter').parse(args).name = "moo";
     if (commander.args.length) {
-      marked.setOptions({
-        highlight: function(code, lang) {
-          if (lang != null) {
-            return highlight(lang, code).value;
-          }
-          return code;
-        }
-      });
+      init();
       if (commander["export"]) {
-        return exportHtml(commander);
+        return exports(commander);
       } else {
         return preview(commander);
       }
@@ -243,7 +277,7 @@
   Moo = module.exports = {
     run: run,
     preview: preview,
-    exportHtml: exportHtml,
+    exports: exports,
     parse: parse
   };
 

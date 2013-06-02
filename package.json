@@ -24,7 +24,8 @@
     "open": "0.0.3",
     "colors": "~0.6.0-1",
     "marked": "~0.2.9",
-    "lodash": "~1.2.1"
+    "lodash": "~1.2.1",
+    "pdc": "~0.1.1"
   },
   "devDependencies": {
     "coffee-script": "~1.6.2",

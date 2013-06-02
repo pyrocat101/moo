@@ -39,4 +39,5 @@ task 'watch', ->
   invoke 'build:css'
 
   watch 'moo.coffee', -> invoke 'build:coffee'
-  watch 'resources/*/style.css', -> invoke 'build:css'
+  glob 'resources/*/style.css', (err, files) ->
+    watch files, -> invoke 'build:css'
