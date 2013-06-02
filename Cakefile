@@ -34,20 +34,6 @@ task 'build:css', 'compress and pack CSS (images encoded into data-URIs)', ->
   data = compressCSS embedImages(css)
   fs.writeFile min, data
 
-ender    = path.join process.cwd(), 'node_modules/.bin/ender'
-enderPkg = 'qwery domready reqwest bonzo'
-app      = 'app.js'
-optLevel = 'whitespace'
-
-task 'build:js', 'minify client-side scripts', ->
-  process.chdir './lib/static'
-  exec "#{ender} build #{enderPkg}", (err, stdout, stderr) ->
-    throw err if err
-    console.log stdout + stderr
-  exec "#{ender} compile #{app} --level #{optLevel}", (err, stdout, stderr) ->
-    throw err if err
-    console.log stdout + stderr
-
 coffeeBin = path.join process.cwd(), 'node_modules/.bin/coffee'
 
 # task 'build', 'build source from src/*.coffee to lib/*.js', ->
