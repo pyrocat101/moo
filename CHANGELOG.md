@@ -1,3 +1,9 @@
+## 0.4.0 (June 2, 2013)
+
+- Single file code base
+- Added pandoc support
+- New Github CSS
+
 ## 0.3.2 (May 21, 2013)
 
 - Fixed issue #6
