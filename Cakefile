@@ -20,12 +20,6 @@ embedAssets = (css) ->
       console.error "Asset not found: #{asset.red}".bold
   return css
 
-flour.minifiers['css'] = (file, cb) ->
-  csso = require 'csso'
-  css = embedAssets file.path
-  css = csso.justDoIt css
-  cb css
-
 task 'build:coffee', ->
   compile 'moo.coffee', 'moo.js'
 
@@ -33,7 +27,8 @@ task 'build:css', ->
   glob 'resources/*/style.css', (err, files) ->
     files.forEach (file) ->
       min = "#{path.dirname(file)}/#{path.basename(file, '.css')}.min.css"
-      minify file, min
+      fs.writeFileSync(min, embedAssets(file))
+      minify min, min
 
 task 'build', ->
   invoke 'build:coffee'

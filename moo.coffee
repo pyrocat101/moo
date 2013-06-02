@@ -180,6 +180,7 @@ run = (args = process.argv) ->
 
   if commander.args.length
     marked.setOptions
+      smartypants: true
       highlight: (code, lang) ->
         if lang?
           return highlight(lang, code).value
