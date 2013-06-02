@@ -1,47 +1,47 @@
+flour  = require 'flour'
 fs     = require 'fs'
 path   = require 'path'
+mime   = require 'mime'
+glob   = require 'glob'
 colors = require 'colors'
-{spawn, exec} = require 'child_process'
 
-option '-w', '--watch', 'continually build the docco library'
+embedAssets = (css) ->
+  dir = path.dirname css
+  css = fs.readFileSync css, 'utf-8'
+  url = /url\s?\(['"]?(.*?)(?=['"]?\))/gi
 
-embedImages = (cssPath) ->
-  imgRegex = /url\s?\(['"]?(.*?)(?=['"]?\))/gi
-  css = fs.readFileSync cssPath, 'utf-8'
-  while (match = imgRegex.exec css)
-    imgPath = path.join path.dirname(cssPath), match[1]
+  while (match = url.exec css)
+    asset = path.join dir, match[1]
     try
-      img = fs.readFileSync imgPath, 'base64'
-      ext = imgPath.substr imgPath.lastIndexOf('.') + 1
-      css = css.replace match[1], "data:image/#{ext};base64,#{img}"
+      type = mime.lookup asset
+      asset = fs.readFileSync asset, 'base64'
+      css = css.replace match[1], "data:#{type};base64,#{asset}"
     catch e
-      console.error "Image not found: #{imgPath.red}"
+      console.error "Asset not found: #{asset.red}".bold
   return css
 
-compressCSS = (css) ->
-  css
-    .replace(/\s+/g, ' ')
-    .replace(/:\s+/g, ':')
-    .replace(/\/\*.*?\*\//g, '')
-    .replace(/\} /g, '}')
-    .replace(/[ ]\{/g, '{')
-    .replace(/; /g, ';')
-    .replace(/\n+/g, '')
+flour.minifiers['css'] = (file, cb) ->
+  csso = require 'csso'
+  css = embedAssets file.path
+  css = csso.justDoIt css
+  cb css
 
-task 'build:css', 'compress and pack CSS (images encoded into data-URIs)', ->
-  css = './lib/static/github.css'
-  min = "#{path.dirname(css)}/#{path.basename(css, '.css')}.min.css"
-  data = compressCSS embedImages(css)
-  fs.writeFile min, data
+task 'build:coffee', ->
+  compile 'moo.coffee', 'moo.js'
 
-coffeeBin = path.join process.cwd(), 'node_modules/.bin/coffee'
+task 'build:css', ->
+  glob 'resources/*/style.css', (err, files) ->
+    files.forEach (file) ->
+      min = "#{path.dirname(file)}/#{path.basename(file, '.css')}.min.css"
+      minify file, min
 
-# task 'build', 'build source from src/*.coffee to lib/*.js', ->
-#   exec "#{coffeeBin} -co lib/ src/", (err, stdout, stderr) ->
-#     throw err if err
-#     console.log stdout + stderr
+task 'build', ->
+  invoke 'build:coffee'
+  invoke 'build:css'
 
-task 'build', 'continually build source with --watch', (options) ->
-  coffee = spawn coffeeBin, ['-c' + (if options.watch then 'w' else ''), '.']
-  coffee.stdout.on 'data', (data) -> console.log data.toString().trim()
-  coffee.stderr.on 'data', (data) -> console.log data.toString().trim()
+task 'watch', ->
+  invoke 'build:coffee'
+  invoke 'build:css'
+
+  watch 'moo.coffee', -> invoke 'build:coffee'
+  watch 'resources/*/style.css', -> invoke 'build:css'

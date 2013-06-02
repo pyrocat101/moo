@@ -90,7 +90,6 @@ abbr {
   margin: 30px auto;
 }
 
-
 .container {
   padding: 3px;
   background: #EEE;
@@ -102,8 +101,6 @@ abbr {
   border: 1px solid #CACACA;
   padding: 30px
 }
-
-
 
 .markdown-body {
   font-size: 15px;
@@ -196,7 +193,7 @@ abbr {
 }
 
 .markdown-body hr {
-  background: transparent url("/assets.github.com/assets/primer/markdown/dirty-shade-829442692c2610515840eeef6d43bfdd1571553c.png") repeat-x 0 0;
+  background: transparent url("dirty-shade.png") repeat-x 0 0;
   border: 0 none;
   color: #ccc;
   height: 4px;
@@ -410,6 +407,12 @@ body,input,select,textarea,button {
 body {
   background-color: #fff;
   color: #333333
+}
+
+body:after {
+  content: "";
+  display: block;
+  height: 1px
 }
 
 a {
