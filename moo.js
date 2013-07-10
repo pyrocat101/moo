@@ -1,6 +1,7 @@
 (function() {
-  var Moo, colors, commander, config, configure, error, examples, exports, express, fs, highlight, init, jade, marked, open, pandoc, parse, path, preview, run, serve, timeLog, version, warn, watch, _,
-    __slice = [].slice;
+  var Moo, colors, commander, config, configure, error, examples, exports, express, fs, hljs, init, jade, marked, open, pandoc, parse, path, preview, run, serve, timeLog, version, warn, watch, _,
+    __slice = [].slice,
+    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   express = require('express');
 
@@ -22,7 +23,7 @@
 
   watch = require('chokidar').watch;
 
-  highlight = require('highlight.js').highlight;
+  hljs = require('highlight.js');
 
   error = function(msg) {
     return console.error(("" + 'error'.red + " - " + msg).bold);
@@ -192,6 +193,7 @@
         }
       }
     };
+    stripFrontmatter();
     tokens = marked.lexer(text);
     if (!hasTitle) {
       first = tokens[0];
@@ -237,10 +239,22 @@
   };
 
   init = function() {
+    var highlight, l, languages;
+
+    languages = (function() {
+      var _results;
+
+      _results = [];
+      for (l in hljs.LANGUAGES) {
+        _results.push(l);
+      }
+      return _results;
+    })();
+    highlight = hljs.highlight;
     return marked.setOptions({
       smartypants: true,
       highlight: function(code, lang) {
-        if (lang != null) {
+        if (__indexOf.call(languages, lang) >= 0) {
           return highlight(lang, code).value;
         }
         return code;

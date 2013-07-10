@@ -8,7 +8,7 @@ marked      = require 'marked'
 commander   = require 'commander'
 _           = require 'lodash'
 {watch}     = require 'chokidar'
-{highlight} = require 'highlight.js'
+hljs        = require 'highlight.js'
 
 
 error   = (msg) -> console.error "#{'error'.red} - #{msg}".bold
@@ -90,7 +90,7 @@ serve = ->
     open url
     server
 
-  return listen(config.port)
+  listen config.port
 
 
 exports = (options = {}) ->
@@ -142,6 +142,8 @@ parse = (source, text, cb) ->
           title = match[1]
         text = mainmatter.join '---\n'
 
+  stripFrontmatter()
+
   tokens = marked.lexer text
   unless hasTitle
     first = tokens[0]
@@ -179,10 +181,14 @@ configure = (options) ->
 
 
 init = ->
+
+  languages = (l for l of hljs.LANGUAGES)
+  highlight = hljs.highlight
+
   marked.setOptions
     smartypants: true
     highlight: (code, lang) ->
-      if lang?
+      if lang in languages
         return highlight(lang, code).value
       return code
 

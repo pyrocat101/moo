@@ -1,3 +1,9 @@
+## 0.4.2 (July 10, 2013)
+
+- Fixed the issue of not showing page title
+- Fixed the issue of not stripping YAML frontmatter
+- Fixed the issue that moo crashes if highlight.js doesn't know how to highlight a language
+
 ## 0.4.0 (June 2, 2013)
 
 - Single file code base
