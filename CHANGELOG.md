@@ -1,3 +1,15 @@
+## 0.5.0 (August 11, 2014)
+
+- Rewrite in JavaScript.
+- Update to the latest Github stylesheet.
+- Support export STDIN to STDOUT.
+- Highlight code blocks with Pygments (bundled).
+- Better logging.
+- Async write in export mode.
+- Removed Zepto dependency.
+- Drop Pandoc support.
+- Update dependencies to the latest version.
+
 ## 0.4.2 (July 10, 2013)
 
 - Fixed the issue of not showing page title

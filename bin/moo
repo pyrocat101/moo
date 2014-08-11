@@ -1,99 +1,290 @@
 #!/usr/bin/env node
+'use strict';
 
-var path = require('path');
-var fs = require('fs');
-var dir = path.join(path.dirname(fs.realpathSync(__filename)), '../');
-require(dir + 'moo.js').run();
+var express    = require('express'),
+    path       = require('path'),
+    fs         = require('fs'),
+    util       = require('util'),
+    jade       = require('jade'),
+    open       = require('open'),
+    marked     = require('marked'),
+    program    = require('commander'),
+    pygmentize = require('pygmentize-bundled'),
+    watch      = require('chokidar').watch,
+    async      = require('async'),
+    pkg        = require('../package.json'),
+    version    = pkg.version;
 
-// var moo     = require('../'),
-//     fs      = require('fs'),
-//     util    = require('util'),
-//     path    = require('path'),
-//     colors  = require('colors'),
-//     program = require('commander');
+// CLI
 
-// var exportHtml = function (inputPath, output) {
-//   var markup = new moo.Markup(inputPath);
-//   markup.export(function (err, html) {
-//     if (err)
-//       console.error(err);
-//     else
-//       output.end(html);
-//   });
-// };
+program
+  .version(version)
+  .option('-e, --export', 'export rendered HTML instead preview')
+  .option('-p, --port <n>', 'server port (defaults to random)', parseInt, 0);
 
-// var error = moo.error;
-// var warn  = moo.warn;
+program.on('help', function () {
+  [
+    '  Examples:',
+    '',
+    '    $ moo [-p 8080] README.md',
+    '    $ moo -e *.md',
+    '    $ cat README.md | moo -e - | less',
+    '',
+  ].forEach(console.error);
+});
 
-// process.on('uncaughtException', function (err) {
-//   error(err);
-//   process.exit(1);
-// });
+program.parse(process.argv);
 
-// // additional help
-// program.on('--help', function () {
-//   console.log('  Examples:');
-//   console.log('');
-//   console.log('  - preview:'.yellow.bold);
-//   console.log('    + accept a file to live preview in the web browser');
-//   console.log('    + example: ' + '$ moo README.md'.cyan.bold);
-//   console.log('  - export:'.yellow.bold);
-//   console.log('    + accept multiple files to generate HTML respectively');
-//   console.log('    + example: ' + '$ moo -e ch1.md ch2.md ch3.md'.cyan.bold);
-//   console.log('');
-// });
+var isatty = process.stderr.isTTY;
 
-// var version = JSON.parse(fs.readFileSync(__dirname + '/../package.json')).version;
+// Resources
 
-// program
-//   .version(version)
-//   .usage('[options] <inputs>')
-//   .option('-e, --export', 'export rendered HTML only')
-//   .option('-p, --port <port>', "server port [default: random]", parseInt, 0)
-//   .parse(process.argv);
+program.views = __dirname + '/../resources/views';
+program.static = __dirname + '/../resources/static';
 
-// var args = program.args;
+// Marked
 
-// if (!program.export) {
-//   // preview mode
-//   if (args.length !== 1) {
-//     error("expect one input file");
-//     process.exit(1);
-//   }
-//   var server = new moo.Server(args[0]);
-//   server.listen(program.port);
-// } else {
-//   // export mode
-//   if (!args) {
-//     console.error("no input files");
-//     process.exit(1);
-//   }
-//   // process each arguments
-//   for (var i = 0; i < args.length; args++) {
-//     var arg = args[i];
-//     var inputPath = path.resolve(process.cwd(), arg);
+var renderer = new marked.Renderer();
 
-//     if (fs.existsSync(inputPath)) {
-//       var inputStats = fs.statSync(inputPath);
-//       if (!inputStats.isFile()) {
-//         warn("ignoring directory: '%s'", inputPath);
-//       } else {
-//         var outdir = path.dirname(arg);
-//         var outputName = path.basename(inputPath, path.extname(inputPath)) + '.html';
-//         var outputPath = path.join(outdir, outputName);
-//         var outputStream = fs.createWriteStream(outputPath, {
-//           flags: 'w',
-//           encoding: 'utf8'
-//         });
+renderer.code = function (text, lang) {
+  if (!lang) {
+    return '<pre><code>' + text + '\n</code></pre>';
+  } else {
+    // return identity since Pygments already wrapped the code.
+    return text;
+  }
+};
 
-//         console.log("export '%s'", inputPath);
-//         exportHtml(inputPath, outputStream, program);
-//       }
-//     } else {
-//       error("no such file or directory: '%s'", arg);
-//     }
-//   }
-// }
+marked.setOptions({
+  renderer: renderer
+});
 
+function highlight (code, lang, callback) {
+  var options = {
+    lang: lang,
+    format: 'html',
+    options: {
+      cssclass: util.format('highlight highlight-%s', lang),
+    },
+  };
+  pygmentize(options, code, function (err, result) {
+    callback(err, result.toString());
+  });
+}
 
+// Logging
 
+require('colour');
+
+function logger (name, color, post) {
+  return function () {
+    var msg = util.format.apply(null, arguments);
+    var prefix = name[color].bold + ' - '.grey;
+
+    msg.split('\n').forEach(function (line) {
+      var out = prefix + line;
+      if (!isatty)
+        out = out.stripColors;
+      console.error(out);
+    });
+    if (post) post();
+  };
+}
+
+var fatal = logger('fatal', 'red', function () { process.exit(1); }),
+    error = logger('error', 'red'),
+    info  = logger('info', 'cyan'),
+    ok    = logger('ok', 'green');
+
+// Preview
+
+function preview () {
+  var app = express();
+  var filename, server, url;
+
+  if (program.args.length !== 1)
+    fatal('expect one input file.');
+
+  filename = program.args[0];
+
+  // all environments
+  app.set('views', program.views);
+  app.set('view engine', 'jade');
+  app.use('/', express.static(path.dirname(fs.realpathSync(filename))));
+  app.use('/__moo__', express.static(program.static));
+
+  // routers
+  app.get('/', function (req, res) {
+    res.render('index');
+  });
+
+  app.get('/content', function (req, res){
+    fs.readFile(filename, function (err, buffer) {
+      if (err) fatal(err);
+      parse(filename, buffer.toString(), function (err, content) {
+        if (err) fatal(err);
+        res.json(content);
+      });
+    });
+  });
+
+  app.get('/update-event', function (req, res) {
+    var watcher = watch(filename, { persistent: true });
+
+    // server-sent event
+    req.socket.setTimeout(0);
+    res.set({
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    });
+    res.on('close', function () {
+      watcher.close();
+    });
+
+    // watcher
+    watcher.on('change', function () {
+      ok('render %s', filename);
+      res.write('data: update\n\n');
+    }).on('unlink', function () {
+      error('%s is removed', filename);
+    }).on('error', function (err) {
+      fatal(err);
+    });
+  });
+
+  process.on('exit', function () {
+    server.close();
+  });
+
+  server = app.listen(program.port);
+  url = 'http://localhost:' + server.address().port;
+  ok('Server listening at %s. Press Ctrl-C to stop.', url.underline);
+
+  // open URL
+  open(url);
+}
+
+// Export
+
+function exports () {
+  var template = program.views + '/export.jade',
+      files = program.args.slice();
+
+  template = jade.compileFile(template);
+
+  function readStdin (callback) {
+    var buf = new Buffer(0);
+    process.stdin.on('error', function (err) {
+      callback(err);
+    });
+    process.stdin.on('data', function (chunk) {
+      buf = Buffer.concat([buf, chunk]);
+    });
+    process.stdin.on('end', function () {
+      callback(null, buf);
+    });
+  }
+
+  async.each(files, function (src, onerror) {
+    var dest = src.replace(/\.[^\/.]+$/, '.html');
+    if (src == '-') {
+      // STDIN -> STDOUT
+      async.waterfall([
+        readStdin,
+        function (buf, callback) {
+          parse('STDIN', buf, callback);
+        },
+        function (data, callback) {
+          var html = template(data);
+          process.stdout.write(html + '\n', callback);
+        },
+      ], onerror);
+    } else {
+      async.waterfall([
+        // src -> dest
+        function (callback) {
+          fs.readFile(src, callback);
+        },
+        function (buf, callback) {
+          parse(src, buf, callback);
+        },
+        function (data, callback) {
+          var html = template(data);
+          fs.writeFile(dest, html, callback);
+        },
+        function () {
+          ok('%s -> %s', src, dest);
+        },
+      ], onerror);
+    }
+  }, function (err) {
+    if (err) error(err);
+  });
+}
+
+// Render
+
+function parse (filename, text, callback) {
+  var title = path.basename(filename);
+  var hasTitle = false;
+
+  text = text.toString();
+
+  // strip front-matter
+  (function stripFrontmatter () {
+    var mainmatter, match;
+    if (/^-{3}\n/.test(text)) {
+      mainmatter = text.split('---\n');
+      mainmatter.shift();
+      if (mainmatter.length >= 2) {
+        match = /(?:^|\n)title:\s*(.+)/i.exec(mainmatter.shift());
+        if (match) {
+          hasTitle = true;
+          title = match[1];
+        }
+        text = mainmatter.join('---\n');
+      }
+    }
+  })();
+
+  var tokens = marked.lexer(text);
+  if (!hasTitle) {
+    var first = tokens[0];
+    if (first && first.type === 'heading' && first.depth === 1) {
+      title = first.text;
+    }
+  }
+
+  async.each(tokens, function (token, callback) {
+    if (token.type === 'code' && token.lang) {
+      // highlight tokens
+      highlight(token.text, token.lang, function (err, code) {
+        if (err) {
+          callback(err);
+        } else {
+          if (code !== null && code !== token.text) {
+            token.text = code;
+            token.escaped = true;
+          }
+          callback();
+        }
+      });
+    } else {
+      callback();
+    }
+  }, function (err) {
+    if (err) {
+      error(err);
+    } else {
+      var html = marked.parser(tokens);
+      callback(null, { title: title, html: html });
+    }
+  });
+}
+
+if (program.export) {
+  exports();
+} else {
+  preview();
+}
