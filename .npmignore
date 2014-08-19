@@ -6,3 +6,5 @@ examples
 .travis.yml
 Makefile
 .jshintrc
+node_modules
+artwork
