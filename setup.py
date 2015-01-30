@@ -2,13 +2,11 @@
     moo
     ~~~
 
-    Moo is a mini markdown preview server that provides preview of
-    markdown files. It automatically reload rendered HTML in your
-    broswer when file changes, which makes it suitable to preview
-    markdown in editors that does not provide this feature. Plugins can
-    be easily written to interface with it.
+    moo is a editor-agnostic markdown live previewer. Write markdown in
+    your favorite editor, save changes, and view pretty HTML output in
+    your browser instantly.
 
-    :copyright: Copyright 2012-2013 by metaphysiks.
+    :copyright: Copyright 2012-2015 by Linjie Ding.
     :license: MIT
 """
 
@@ -16,22 +14,28 @@ from setuptools import setup
 
 setup(
 	name='moo',
-	version='0.2.0',
-	description="moo is an editor-agnostic markdown live preview server.",
+	version='0.5.1',
+	description="Editor-agnostic markdown live previewer.",
 	long_description=__doc__,
-    author="metaphysiks",
-    author_email="i@dingstyle.me",
+    author="Linjie Ding",
+    author_email="i@pyroc.at",
     keywords=("markdown", "pygments", "preview", "bottle", "github"),
-    url = "https://github.com/metaphysiks/moo",
-	packages=['moo'],
-	include_package_data=True,
-	zip_safe=False,
+    url = "https://github.com/pyrocat101/moo",
+	py_modules=['moo'],
+    install_requires=[
+        'bottle',
+        'click',
+        'gevent',
+        'jinja2',
+        'misaka',
+        'pygments',
+    ],
+    entry_points='''
+        [console_scripts]
+        moo=moo:main
+    ''',
     platforms = 'any',
-	install_requires=['misaka', 'bottle', 'pygments', 'docopt', 'cherrypy'],
     license='MIT',
-	entry_points={
-        'console_scripts': ['moo = moo.cmdline:main'],
-    },
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
