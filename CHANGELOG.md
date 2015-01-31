@@ -1,4 +1,4 @@
-## 0.5.1 (January 30, 2015)
+## 0.5.3 (January 30, 2015)
 
 - Rewrite in Python (due to bad Node.js/Pygments IPC performance).
 - Added option to disable CSS styling.

@@ -1,27 +1,28 @@
 """
-    moo
-    ~~~
+moo
+---
 
-    moo is a editor-agnostic markdown live previewer. Write markdown in
-    your favorite editor, save changes, and view pretty HTML output in
-    your browser instantly.
+moo is a editor-agnostic markdown live previewer. Write markdown in your
+favorite editor, save changes, and view pretty HTML output in your
+browser instantly.
 
-    :copyright: Copyright 2012-2015 by Linjie Ding.
-    :license: MIT
+:copyright: Copyright 2012-2015 by Linjie Ding.
+:license: MIT
 """
 
-from setuptools import setup
+from setuptools import setup, find_packages
+from glob import glob
 
 setup(
 	name='moo',
-	version='0.5.1',
+	version='0.5.3',
 	description="Editor-agnostic markdown live previewer.",
 	long_description=__doc__,
     author="Linjie Ding",
     author_email="i@pyroc.at",
     keywords=("markdown", "pygments", "preview", "bottle", "github"),
     url = "https://github.com/pyrocat101/moo",
-	py_modules=['moo'],
+	packages=find_packages(),
     install_requires=[
         'bottle',
         'click',

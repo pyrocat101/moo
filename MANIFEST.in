@@ -1,0 +1,2 @@
+recursive-include moo/static *
+recursive-include moo/templates *
