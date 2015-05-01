@@ -15,7 +15,7 @@ from glob import glob
 
 setup(
 	name='moo',
-	version='0.5.3',
+	version='0.5.6',
 	description="Editor-agnostic markdown live previewer.",
 	long_description=__doc__,
     author="Linjie Ding",

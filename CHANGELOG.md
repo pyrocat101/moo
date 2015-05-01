@@ -1,3 +1,9 @@
+## 0.5.6 (January 30, 2015)
+
+- Change ``--css`` to custom CSS styling.
+- Use ``--enable-css/--disable-css`` options to enable css styling or not
+- Update README.md
+
 ## 0.5.3 (January 30, 2015)
 
 - Rewrite in Python (due to bad Node.js/Pygments IPC performance).

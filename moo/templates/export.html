@@ -5,9 +5,11 @@
 {% endblock %}
 
 {% block css %}
-  <style>
-  {{ include_file('style.min.css') }}
-  </style>
+  {% if css %}
+    <style>{{ include_file_absolute(css) }}</style>
+  {% else %}
+    <style>{{ include_file_relative('style.min.css') }}</style>
+  {% endif %}
 {% endblock %}
 
 {% block content %}

@@ -26,7 +26,7 @@ import click
 
 __author__ = "Linjie Ding <i@pyroc.at>"
 __license__ = "MIT"
-__version__ = "0.5.3"
+__version__ = "0.5.6"
 
 
 # Logging ---------------------------------------------------------------------
@@ -95,7 +95,9 @@ def strip_yaml(text):
 
 
 # Preview ---------------------------------------------------------------------
-
+# change name SYS_ROOT ?
+# bug on windows
+ROOT = '/'
 SRC_ROOT = os.path.dirname(os.path.realpath(__file__))
 STATIC_ROOT = os.path.join(SRC_ROOT, 'static')
 TEMPLATE_ROOT = os.path.join(SRC_ROOT, 'templates')
@@ -103,7 +105,7 @@ TEMPLATE_ROOT = os.path.join(SRC_ROOT, 'templates')
 view = partial(jinja2_view, template_lookup=[TEMPLATE_ROOT])
 open = partial(io.open, encoding="utf-8")
 
-def preview(filename, options={}):
+def preview(filename, options):
     path = os.path.abspath(filename)
     dirpath = os.path.dirname(filename)
     realpath = os.path.realpath(path)
@@ -116,7 +118,7 @@ def preview(filename, options={}):
     @app.route('/')
     @view('index')
     def index():
-        return { 'css': options.get('css', True) }
+        return { 'css': options['css'], 'enable_css': options['enable_css'] }
 
     @app.route('/content')
     def content():
@@ -143,11 +145,15 @@ def preview(filename, options={}):
     def moo_static(res):
         return static_file(res, root=STATIC_ROOT)
 
+    @app.route('/custom/<res:path>')
+    def custom_static(res):
+        return static_file(res, root=ROOT)
+
     @app.route('/<res:path>')
     def static(res):
         return static_file(res, root=dirpath)
 
-    server = WSGIServer(("0.0.0.0", options.get('port', 0)), app, log=False)
+    server = WSGIServer(("127.0.0.1", options['port']), app, log=False)
     server.start()
 
     url = 'http://127.0.0.1:%d' % server.server_port
@@ -167,24 +173,37 @@ def export_file(infile, outfile, template, options, filename=""):
     outfile.write(html)
     outfile.flush()
 
-def export_files(files, options={}):
+def export_files(files, options):
     loader = jinja2.FileSystemLoader(TEMPLATE_ROOT)
     env = jinja2.Environment(loader=loader)
     template = env.get_template('export.html')
 
-    def include_file(name):
+    def include_file_relative(name):
         return jinja2.Markup(loader.get_source(env, name)[0])
-    env.globals['include_file'] = include_file
+
+    abs_loader = jinja2.FileSystemLoader(ROOT)
+    abs_env = jinja2.Environment(loader=abs_loader)
+    # include file by absolute path
+    def include_file_absolute(name):
+        return jinja2.Markup(abs_loader.get_source(abs_env, name)[0])
+
+    env.globals['include_file_relative'] = include_file_relative
+    env.globals['include_file_absolute'] = include_file_absolute
 
     for infile in files:
         if infile == '-':
             export_file(sys.stdin, sys.stdout, template, options)
             ok("STDIN -> STDOUT")
-        else:
-            outfile = os.path.splitext(infile)[0] + '.html'
+            continue
+
+        outfile = os.path.splitext(infile)[0] + '.html'
+        try:
             with open(infile, 'rt') as i, open(outfile, 'wt') as o:
                 export_file(i, o, template, options, filename=infile)
                 ok("%s -> %s" % (infile, outfile))
+        except jinja2.exceptions.TemplateNotFound as e:
+            os.remove(outfile)
+            error("'%s' not found" % e)
 
 
 # Main ------------------------------------------------------------------------
@@ -200,22 +219,31 @@ def version(ctx, param, value):
               help='server port (default: random)')
 @click.option('-e', '--export', is_flag=True, default=False,
               help='export rendered HTML instead of preview')
-@click.option('--css/--no-css', default=True,
-              help='css styling (default: enabled)')
+@click.option('-c', '--css', default=None,
+              help='custom css file')
+@click.option('--enable-css/--disable-css', default=True,
+              help='enable css styling or not (default: enabled)')
 @click.option('--version', is_flag=True, callback=version,
               expose_value=False, is_eager=True, help='print the version')
 @click.argument('files', nargs=-1,
                 type=click.Path(exists=True, dir_okay=False))
-def main(port, export, css, files):
+def main(port, export, css, enable_css, files):
     """
     \b
     Examples:
     $ moo README.md                     # live preview README.md
-    $ moo -e *.md                       # export all markdown files
-    $ moo --no-css -e README.md         # export README.md without CSS
+    $ moo -e *.md                       # export all markdown files to htmls
+    $ moo -c style.css README.md        # use style.css for styling README.md
+    $ moo --disable-css -e README.md    # export README.md without CSS
     $ cat README.md | moo -e - | less   # export STDIN to STDOUT
     """
-    options = { 'css': css, 'port': port }
+
+    options = {
+        'port': port,
+        'css': os.path.abspath(css) if css else None,
+        'enable_css': enable_css,
+    }
+
     try:
         if not export:
             if len(files) != 1:
