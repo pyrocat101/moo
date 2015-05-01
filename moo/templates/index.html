@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 
 {% block css %}
-  <link rel="stylesheet" type="text/css" href="/__moo__/style.css">
+  {% if css %}
+    <link rel="stylesheet" type="text/css" href="/custom/{{ css }}">
+  {% else %}
+    <link rel="stylesheet" type="text/css" href="/__moo__/style.css">
+  {% endif %}
 {% endblock %}
 
 {% block js %}
