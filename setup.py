@@ -28,7 +28,7 @@ setup(
         'click',
         'gevent',
         'jinja2',
-        'misaka',
+        'misaka<2',
         'pygments',
     ],
     entry_points='''
