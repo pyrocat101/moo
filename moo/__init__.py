@@ -26,7 +26,7 @@ import click
 
 __author__ = "Linjie Ding <i@pyroc.at>"
 __license__ = "MIT"
-__version__ = "0.5.3"
+__version__ = "0.5.4"
 
 
 # Logging ---------------------------------------------------------------------
@@ -52,28 +52,26 @@ RENDER_EXTENSIONS = misaka.EXT_FENCED_CODE       \
                   | misaka.EXT_NO_INTRA_EMPHASIS \
                   | misaka.EXT_AUTOLINK          \
                   | misaka.EXT_STRIKETHROUGH     \
-                  | misaka.EXT_LAX_HTML_BLOCKS   \
                   | misaka.EXT_SUPERSCRIPT       \
                   | misaka.EXT_TABLES
-HTML_FLAGS = misaka.HTML_TOC
 HTML_TITLE = re.compile(r"\s*<h1>([^<]*)</h1>")
 
-class HtmlRenderer(misaka.HtmlRenderer, misaka.SmartyPants):
-    def block_code(self, text, lang):
+class HtmlRenderer(misaka.HtmlRenderer):
+    def blockcode(self, text, lang=''):
         if not lang:
             return "\n<pre><code>%s</code></pre>\n" % escape_html(text)
         lexer = get_lexer_by_name(lang, stripall=True)
         formatter = HtmlFormatter()
         return highlight(text, lexer, formatter)
 
-markdown = misaka.Markdown(HtmlRenderer(HTML_FLAGS), RENDER_EXTENSIONS)
+markdown = misaka.Markdown(HtmlRenderer(), RENDER_EXTENSIONS)
 
 def render(text, filename=""):
     title = os.path.basename(filename)
     yaml_title, text = strip_yaml(text)
     if yaml_title is not None:
         title = yaml_title
-    html = markdown.render(text)
+    html = markdown(text)
     title_match = HTML_TITLE.match(html)
     if title_match is not None and yaml_title is None:
         title = title_match.group(1)
@@ -84,7 +82,9 @@ YAML_TITLE = re.compile(r"\s*title:\s*(.+)", re.MULTILINE)
 
 def strip_yaml(text):
     try:
-        _, frontmatter, content = YAML_BOUNDARY.split(text, 2)
+        prelude, frontmatter, content = YAML_BOUNDARY.split(text, 2)
+        if prelude.strip():
+            return None, text
     except ValueError:
         return None, text
     title_match = YAML_TITLE.search(frontmatter)
@@ -147,7 +147,7 @@ def preview(filename, options={}):
     def static(res):
         return static_file(res, root=dirpath)
 
-    server = WSGIServer(("0.0.0.0", options.get('port', 0)), app, log=False)
+    server = WSGIServer(("0.0.0.0", options.get('port', 0)), app, log=None)
     server.start()
 
     url = 'http://127.0.0.1:%d' % server.server_port

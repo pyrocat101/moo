@@ -15,7 +15,7 @@ from glob import glob
 
 setup(
 	name='moo',
-	version='0.5.3',
+	version='0.5.4',
 	description="Editor-agnostic markdown live previewer.",
 	long_description=__doc__,
     author="Linjie Ding",
@@ -28,7 +28,7 @@ setup(
         'click',
         'gevent',
         'jinja2',
-        'misaka<2',
+        'misaka >= 2.0.0, <= 3.0.0',
         'pygments',
     ],
     entry_points='''

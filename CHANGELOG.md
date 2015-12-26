@@ -1,3 +1,8 @@
+## 0.5.4 (December 26, 2015)
+
+- Fixed #16
+- Fixed YAML frontmatter vs. markdown ruler parsing
+
 ## 0.5.3 (January 30, 2015)
 
 - Rewrite in Python (due to bad Node.js/Pygments IPC performance).
