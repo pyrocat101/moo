@@ -46,6 +46,15 @@ See `moo --help` for detailed options and examples.
 pip install moo
 ```
 
+## Troubleshooting
+
+If you get this error when running `moo`: `NameError: name 'PROTOCOL_SSLv3' is not defined`, upgrading `moo` and it's dependencies may fix it:
+
+```
+pip install --upgrade moo
+```
+
+
 ## LICENSE
 
 MIT
