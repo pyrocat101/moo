@@ -147,7 +147,7 @@ def preview(filename, options={}):
     def static(res):
         return static_file(res, root=dirpath)
 
-    server = WSGIServer(("0.0.0.0", options.get('port', 0)), app, log=None)
+    server = WSGIServer(("127.0.0.1", options.get('port', 0)), app, log=None)
     server.start()
 
     url = 'http://127.0.0.1:%d' % server.server_port
