@@ -26,7 +26,7 @@ import click
 
 __author__ = "Linjie Ding <i@pyroc.at>"
 __license__ = "MIT"
-__version__ = "0.5.4"
+__version__ = "0.5.5"
 
 
 # Logging ---------------------------------------------------------------------
